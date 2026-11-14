@@ -1,68 +1,66 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 
 interface DayCarouselProps {
   onDaySelect?: (date: Date) => void;
 }
 
+function getWeekDays(center: Date) {
+  return Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(center);
+    date.setDate(center.getDate() + index - 3);
+    return date;
+  });
+}
+
 export default function DayCarousel({ onDaySelect }: DayCarouselProps) {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [daysArray, setDaysArray] = useState<Date[]>([]);
+  const [today] = useState(() => new Date());
+  const [selectedDate, setSelectedDate] = useState(() => new Date());
+  const days = getWeekDays(today);
 
-  useEffect(() => {
-    const today = new Date();
-    const days: Date[] = [];
-    
-    // Get 3 days before and after today
-    for (let i = -3; i <= 3; i++) {
-      const date = new Date(today);
-      date.setDate(date.getDate() + i);
-      days.push(date);
-    }
-    setDaysArray(days);
-  }, []);
-
-  const handleDayClick = (date: Date) => {
+  const selectDate = (date: Date) => {
     setSelectedDate(date);
     onDaySelect?.(date);
   };
 
-  const isToday = (date: Date) => {
-    const today = new Date();
-    return date.toDateString() === today.toDateString();
-  };
-
-  const isSelected = (date: Date) => {
-    return date.toDateString() === selectedDate.toDateString();
-  };
-
-  const formatDay = (date: Date) => {
-    return date.toLocaleDateString("en-US", { weekday: "short", day: "numeric" });
-  };
-
   return (
-    <div className="w-full overflow-x-auto pb-4">
-      <div className="flex gap-2 px-4 justify-center md:justify-start">
-        {daysArray.map((date, idx) => (
-          <button
-            key={idx}
-            onClick={() => handleDayClick(date)}
-            className={`flex-shrink-0 px-4 py-3 rounded-full font-semibold transition-all duration-200 min-w-fit ${
-              isSelected(date)
-                ? "bg-orange-500 text-darkgrey shadow-lg scale-105"
-                : isToday(date)
-                ? "bg-gray-700 text-offwhite border-2 border-orange-500"
-                : "bg-gray-800 text-gray-300 hover:bg-gray-700"
-            }`}
-          >
-            <div className="flex flex-col items-center gap-1">
-              <span className="text-xs">{formatDay(date).split(" ")[0]}</span>
-              <span className="text-sm">{formatDay(date).split(" ")[1]}</span>
-            </div>
-          </button>
-        ))}
+    <section aria-label="Choose a day" className="rounded-[1.65rem] border border-white/80 bg-white/55 p-3 shadow-[0_12px_30px_rgba(47,68,85,0.06)] backdrop-blur-sm">
+      <div className="grid grid-cols-7 gap-1.5 sm:gap-2">
+        {days.map((date) => {
+          const selected = date.toDateString() === selectedDate.toDateString();
+          const isToday = date.toDateString() === today.toDateString();
+
+          return (
+            <button
+              key={date.toISOString()}
+              type="button"
+              onClick={() => selectDate(date)}
+              aria-pressed={selected}
+              aria-label={date.toLocaleDateString("en", {
+                weekday: "long",
+                month: "long",
+                day: "numeric",
+              })}
+              className={`flex min-w-0 flex-col items-center justify-center gap-1 rounded-[1.15rem] py-2.5 transition duration-200 sm:py-3 ${
+                selected
+                  ? "bg-[#273744] text-white shadow-[0_8px_18px_rgba(39,55,68,0.22)]"
+                  : "text-slate-500 hover:bg-white/80"
+              }`}
+            >
+              <span className={`text-[10px] font-semibold uppercase tracking-wide sm:text-[11px] ${selected ? "text-white/65" : ""}`}>
+                {date.toLocaleDateString("en", { weekday: "short" })}
+              </span>
+              <span className={`text-sm font-semibold tabular-nums sm:text-base ${selected ? "text-white" : "text-slate-800"}`}>
+                {date.getDate()}
+              </span>
+              {isToday && (
+                <span className={`h-1 w-1 rounded-full ${selected ? "bg-[#f5a85d]" : "bg-[#5c84a5]"}`} />
+              )}
+            </button>
+          );
+        })}
       </div>
-    </div>
+    </section>
   );
 }

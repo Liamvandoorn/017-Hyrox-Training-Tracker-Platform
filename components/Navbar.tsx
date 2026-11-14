@@ -3,63 +3,48 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-interface NavbarProps {
-  onLogout: () => void;
-}
+const items = [
+  {
+    href: "/dashboard",
+    label: "Dashboard",
+    icon: <path d="M3.75 10.5 12 3.75l8.25 6.75v8.25a1.5 1.5 0 0 1-1.5 1.5h-4.5v-6h-4.5v6h-4.5a1.5 1.5 0 0 1-1.5-1.5V10.5Z" />,
+  },
+  {
+    href: "/workout",
+    label: "Log workout",
+    icon: <><path d="M12 5v14M5 12h14" /><circle cx="12" cy="12" r="9" /></>,
+  },
+  {
+    href: "/settings",
+    label: "Settings",
+    icon: <><circle cx="12" cy="12" r="3" /><path d="m19.4 15 .1.1 1.4 1.1-1.4 2.4-1.7-.7a8.4 8.4 0 0 1-1.7 1l-.3 1.8h-2.8l-.3-1.8a8.4 8.4 0 0 1-1.7-1l-1.7.7-1.4-2.4L7.3 15a8.1 8.1 0 0 1 0-2l-1.4-1.1 1.4-2.4 1.7.7a8.4 8.4 0 0 1 1.7-1l.3-1.8h2.8l.3 1.8a8.4 8.4 0 0 1 1.7 1l1.7-.7 1.4 2.4-1.4 1.1a8.1 8.1 0 0 1 0 2Z" /></>,
+  },
+];
 
-export default function Navbar({ onLogout }: NavbarProps) {
+export default function Navbar() {
   const pathname = usePathname();
 
-  const isActive = (path: string) => pathname === path;
-
   return (
-    <nav className="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-700 z-50 md:relative md:border-b md:border-t-0">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="flex justify-around items-center md:justify-start md:gap-8">
-          <Link
-            href="/dashboard"
-            className={`flex-1 md:flex-none py-4 text-center md:py-3 transition-colors font-medium ${
-              isActive("/dashboard")
-                ? "text-orange-500 border-t-2 md:border-t-0 md:border-b-2 border-orange-500"
-                : "text-gray-400 hover:text-offwhite"
-            }`}
-          >
-            <span className="block md:hidden text-xs">Dashboard</span>
-            <span className="hidden md:block">Dashboard</span>
-          </Link>
-
-          <Link
-            href="/workout"
-            className={`flex-1 md:flex-none py-4 text-center md:py-3 transition-colors font-medium ${
-              isActive("/workout")
-                ? "text-orange-500 border-t-2 md:border-t-0 md:border-b-2 border-orange-500"
-                : "text-gray-400 hover:text-offwhite"
-            }`}
-          >
-            <span className="block md:hidden text-xs">Log</span>
-            <span className="hidden md:block">Log Workout</span>
-          </Link>
-
-          <Link
-            href="/settings"
-            className={`flex-1 md:flex-none py-4 text-center md:py-3 transition-colors font-medium ${
-              isActive("/settings")
-                ? "text-orange-500 border-t-2 md:border-t-0 md:border-b-2 border-orange-500"
-                : "text-gray-400 hover:text-offwhite"
-            }`}
-          >
-            <span className="block md:hidden text-xs">Settings</span>
-            <span className="hidden md:block">Settings</span>
-          </Link>
-
-          <button
-            onClick={onLogout}
-            className="flex-1 md:flex-none py-4 text-center md:py-3 text-red-400 hover:text-red-300 transition-colors font-medium md:ml-auto text-xs md:text-base"
-          >
-            <span className="block md:hidden">Logout</span>
-            <span className="hidden md:block">Logout</span>
-          </button>
-        </div>
+    <nav aria-label="Main navigation" className="fixed bottom-[max(12px,env(safe-area-inset-bottom))] left-1/2 z-50 w-[calc(100%-24px)] max-w-[420px] -translate-x-1/2 rounded-[1.55rem] border border-white/80 bg-white/90 p-2 shadow-[0_14px_38px_rgba(35,51,65,0.16)] backdrop-blur-xl">
+      <div className="grid grid-cols-3 gap-1">
+        {items.map((item) => {
+          const active = pathname === item.href;
+          return (
+            <Link
+              key={item.href}
+              href={item.href}
+              aria-current={active ? "page" : undefined}
+              className={`flex min-h-[54px] flex-col items-center justify-center gap-1 rounded-[1.15rem] transition-colors ${
+                active ? "bg-[#273744] text-white shadow-sm" : "text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+              }`}
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]" aria-hidden="true">
+                {item.icon}
+              </svg>
+              <span className="text-[9px] font-semibold tracking-wide">{item.label}</span>
+            </Link>
+          );
+        })}
       </div>
     </nav>
   );

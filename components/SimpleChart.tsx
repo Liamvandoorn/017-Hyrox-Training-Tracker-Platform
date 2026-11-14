@@ -1,97 +1,60 @@
 "use client";
 
 interface SimpleChartProps {
-  type: "line" | "bar";
   data: number[];
   labels: string[];
   color?: "orange" | "blue" | "green";
 }
 
-export default function SimpleChart({
-  type,
-  data,
-  labels,
-  color = "orange",
-}: SimpleChartProps) {
-  const colorClass =
-    color === "orange"
-      ? "#f97316"
-      : color === "blue"
-        ? "#3b82f6"
-        : "#10b981";
-
+export default function SimpleChart({ data, labels, color = "blue" }: SimpleChartProps) {
   if (data.length === 0) {
-    return (
-      <div className="w-full h-full flex items-center justify-center">
-        <p className="text-gray-500 text-sm">No data yet</p>
-      </div>
-    );
+    return <div className="flex h-full items-center justify-center text-xs text-slate-400">No data yet</div>;
   }
 
-  const maxValue = Math.max(...data);
-  const minValue = Math.min(...data);
-  const range = maxValue - minValue || 1;
+  const stroke = color === "orange" ? "#ee9a48" : color === "green" ? "#65a68a" : "#648baa";
+  const max = Math.max(...data);
+  const min = Math.min(...data);
+  const range = max - min || 1;
+  const points = data.map((value, index) => {
+    const x = 8 + (index * 224) / Math.max(data.length - 1, 1);
+    const y = 12 + ((max - value) / range) * 47;
+    return `${x},${y}`;
+  });
+  const areaPath = `M ${points[0]} L ${points.slice(1).join(" L ")} L 232,70 L 8,70 Z`;
 
   return (
-    <svg viewBox="0 0 400 150" className="w-full h-full">
-      {/* Grid lines */}
-      {[0, 1, 2, 3].map((i) => (
-        <line
-          key={`grid-${i}`}
-          x1="40"
-          y1={30 + i * 30}
-          x2="390"
-          y2={30 + i * 30}
-          stroke="#374151"
-          strokeWidth="1"
-          strokeDasharray="2,2"
-        />
+    <svg
+      viewBox="0 0 240 88"
+      className="h-full w-full overflow-visible"
+      role="img"
+      aria-label={`Training trend: ${labels.map((label, index) => `${label} ${data[index]}`).join(", ")}`}
+      preserveAspectRatio="none"
+    >
+      {[20, 42, 64].map((y) => (
+        <line key={y} x1="4" y1={y} x2="236" y2={y} stroke="#e8edf1" strokeWidth="1" />
       ))}
-
-      {/* Y-axis */}
-      <line x1="40" y1="20" x2="40" y2="130" stroke="#6b7280" strokeWidth="2" />
-
-      {/* X-axis */}
-      <line x1="40" y1="130" x2="390" y2="130" stroke="#6b7280" strokeWidth="2" />
-
-      {/* Data line/bars */}
-      {type === "line" && (
-        <polyline
-          points={data
-            .map(
-              (value, idx) =>
-                `${40 + (idx * 350) / (data.length - 1 || 1)},${130 - ((value - minValue) / range) * 100}`
-            )
-            .join(" ")}
-          fill="none"
-          stroke={colorClass}
-          strokeWidth="2"
-          vectorEffect="non-scaling-stroke"
-        />
-      )}
-
-      {type === "bar" &&
-        data.map((value, idx) => (
-          <rect
-            key={`bar-${idx}`}
-            x={40 + idx * (350 / data.length) + 5}
-            y={130 - ((value - minValue) / range) * 100}
-            width={(350 / data.length) * 0.8}
-            height={((value - minValue) / range) * 100}
-            fill={colorClass}
-            opacity="0.8"
-          />
-        ))}
-
-      {/* Labels */}
-      {labels.map((label, idx) => (
+      <path d={areaPath} fill={stroke} opacity="0.09" />
+      <polyline
+        points={points.join(" ")}
+        fill="none"
+        stroke={stroke}
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+      {points.map((point, index) => {
+        const [cx, cy] = point.split(",");
+        return <circle key={`${labels[index]}-${index}`} cx={cx} cy={cy} r="2" fill={stroke} />;
+      })}
+      {labels.map((label, index) => (
         <text
-          key={`label-${idx}`}
-          x={40 + (idx * 350) / (labels.length - 1 || 1)}
-          y="145"
-          textAnchor="middle"
-          fontSize="10"
-          fill="#9ca3af"
+          key={`${label}-${index}`}
+          x={8 + (index * 224) / Math.max(labels.length - 1, 1)}
+          y="84"
+          fill="#9aa6b0"
+          fontSize="8"
+          textAnchor={index === 0 ? "start" : index === labels.length - 1 ? "end" : "middle"}
         >
           {label}
         </text>

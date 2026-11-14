@@ -78,9 +78,9 @@ export default function AddSessionForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="bg-gray-800 rounded-lg p-6 space-y-4 mb-6"
+      className="mb-6 space-y-5 rounded-[1.7rem] border border-white/80 bg-white/80 p-5 shadow-[0_14px_38px_rgba(47,68,85,0.08)] sm:p-7"
     >
-      <h2 className="text-2xl font-bold text-offwhite mb-4">New Session</h2>
+      <h2 className="mb-4 text-xl font-semibold tracking-tight text-slate-800">New session</h2>
 
       {error && (
         <div className="bg-red-900 border border-red-700 text-red-100 px-4 py-2 rounded">
@@ -90,7 +90,7 @@ export default function AddSessionForm({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div>
-          <label className="block text-sm font-medium text-offwhite mb-1">
+          <label className="mb-1 block text-sm font-medium text-slate-600">
             Date
           </label>
           <input
@@ -98,20 +98,20 @@ export default function AddSessionForm({
             name="date"
             value={formData.date}
             onChange={handleChange}
-            className="w-full px-3 py-2 bg-darkgrey text-offwhite border border-gray-600 rounded focus:outline-none focus:border-offwhite"
+            className="w-full rounded-xl border border-slate-200 bg-[#f7f9fb] px-3 py-2.5 text-slate-800 outline-none transition focus:border-[#527b9f]"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-offwhite mb-1">
+          <label className="mb-1 block text-sm font-medium text-slate-600">
             Exercise
           </label>
           <select
             name="exercise"
             value={formData.exercise}
             onChange={handleChange}
-            className="w-full px-3 py-2 bg-darkgrey text-offwhite border border-gray-600 rounded focus:outline-none focus:border-offwhite"
+            className="w-full rounded-xl border border-slate-200 bg-[#f7f9fb] px-3 py-2.5 text-slate-800 outline-none transition focus:border-[#527b9f]"
             required
           >
             <option value="">Select an exercise</option>
@@ -131,7 +131,7 @@ export default function AddSessionForm({
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-offwhite mb-1">
+          <label className="mb-1 block text-sm font-medium text-slate-600">
             Duration (minutes)
           </label>
           <input
@@ -139,14 +139,14 @@ export default function AddSessionForm({
             name="duration"
             value={formData.duration}
             onChange={handleChange}
-            className="w-full px-3 py-2 bg-darkgrey text-offwhite border border-gray-600 rounded focus:outline-none focus:border-offwhite"
+            className="w-full rounded-xl border border-slate-200 bg-[#f7f9fb] px-3 py-2.5 text-slate-800 outline-none transition focus:border-[#527b9f]"
             min="1"
             required
           />
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-offwhite mb-1">
+          <label className="mb-1 block text-sm font-medium text-slate-600">
             Distance (km) - Optional
           </label>
           <input
@@ -154,7 +154,7 @@ export default function AddSessionForm({
             name="distance"
             value={formData.distance}
             onChange={handleChange}
-            className="w-full px-3 py-2 bg-darkgrey text-offwhite border border-gray-600 rounded focus:outline-none focus:border-offwhite"
+            className="w-full rounded-xl border border-slate-200 bg-[#f7f9fb] px-3 py-2.5 text-slate-800 outline-none transition focus:border-[#527b9f]"
             step="0.1"
             min="0"
           />
@@ -162,7 +162,7 @@ export default function AddSessionForm({
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-offwhite mb-1">
+        <label className="mb-1 block text-sm font-medium text-slate-600">
           Notes - Optional
         </label>
         <textarea
@@ -170,7 +170,7 @@ export default function AddSessionForm({
           value={formData.notes}
           onChange={handleChange}
           rows={3}
-          className="w-full px-3 py-2 bg-darkgrey text-offwhite border border-gray-600 rounded focus:outline-none focus:border-offwhite"
+          className="w-full rounded-xl border border-slate-200 bg-[#f7f9fb] px-3 py-2.5 text-slate-800 outline-none transition focus:border-[#527b9f]"
           placeholder="How did it feel? Any observations?"
         />
       </div>
@@ -178,7 +178,7 @@ export default function AddSessionForm({
       <button
         type="submit"
         disabled={submitting || isLoading}
-        className="w-full bg-offwhite text-darkgrey font-bold py-2 rounded hover:bg-gray-100 transition-colors disabled:opacity-50"
+        className="w-full rounded-xl bg-[#273744] py-3 font-semibold text-white transition-colors hover:bg-[#354c5d] disabled:opacity-50"
       >
         {submitting ? "Saving..." : "Add Session"}
       </button>
