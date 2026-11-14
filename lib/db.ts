@@ -1,13 +1,21 @@
 import { Pool } from "pg";
 
-const connectionString = process.env.DATABASE_URL;
+// Use pooled connection for regular queries (recommended for serverless)
+const pooledConnectionString = process.env.DATABASE_URL;
+// Use unpooled connection for schema operations (if available)
+const unpooledConnectionString = process.env.DATABASE_URL_UNPOOLED;
 
-if (!connectionString) {
+if (!pooledConnectionString) {
   throw new Error("DATABASE_URL is not set");
 }
 
 const pool = new Pool({
-  connectionString,
+  connectionString: pooledConnectionString,
+});
+
+// Separate pool for schema operations that need direct connections
+const schemaPool = new Pool({
+  connectionString: unpooledConnectionString || pooledConnectionString,
 });
 
 export async function query(
@@ -72,6 +80,7 @@ export async function initializeDatabase() {
     CREATE INDEX IF NOT EXISTS idx_training_sessions_date ON training_sessions(date);
   `;
 
-  await query(createTableQuery);
+  // Use schema pool for CREATE TABLE operations
+  await schemaPool.query(createTableQuery);
   console.log("Database initialized successfully");
 }
