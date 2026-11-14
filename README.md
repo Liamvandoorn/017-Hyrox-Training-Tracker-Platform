@@ -37,13 +37,6 @@ npm install
 
 Create a `.env.local` file in the root directory:
 
-```env
-# Your Neon PostgreSQL connection string
-DATABASE_URL=postgresql://user:password@ep-xxxxx.us-west-2.aws.neon.tech/hyrox_trainer
-
-# Passcode to access the app (change for security)
-NEXT_PUBLIC_PASSCODE=1234
-```
 
 ### 4. Initialize the Database
 
