@@ -73,9 +73,9 @@ Open [http://localhost:3000](http://localhost:3000) and enter the passcode to ac
 ## Usage
 
 1. **Unlock** - Enter the passcode to access the app
-2. **Log Workout** - Follow the sample plan or create your own workout
-3. **Build sets** - Choose an exercise, enter distance/weight/reps and time, and add sets
-4. **Complete sets** - Tap each numbered circle as you finish a set; finish the workout to mark all sets complete and save a recap
+2. **Log Workout** - Choose Follow plan or Log own workout from the slide-up menu above the navigation
+3. **Build sets** - Use the docked set composer to choose an exercise and enter distance/weight/reps, set time, and rest time
+4. **Complete or abort** - Tap each numbered circle as you finish a set; finish to save a recap or abort after confirming
 5. **Plan setup** - Planned workouts can be configured in Settings in a future update; Follow plan currently uses a clearly marked sample
 
 ## Deployment

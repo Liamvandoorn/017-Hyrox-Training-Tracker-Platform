@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
+import WorkoutStartSheet, { WorkoutFlow } from "@/components/WorkoutStartSheet";
 import type { WorkoutSet, WorkoutSetUnit, WorkoutSource } from "@/lib/types";
 
 const categories = [
@@ -17,10 +18,10 @@ const categories = [
 ];
 
 const samplePlan = [
-  { category: "Running", amount: 500, unit: "m" as const, timeSeconds: 160 },
-  { category: "Running", amount: 500, unit: "m" as const, timeSeconds: 160 },
-  { category: "Running", amount: 500, unit: "m" as const, timeSeconds: 160 },
-  { category: "Running", amount: 500, unit: "m" as const, timeSeconds: 160 },
+  { category: "Running", amount: 500, unit: "m" as const, timeSeconds: 160, restSeconds: 60 },
+  { category: "Running", amount: 500, unit: "m" as const, timeSeconds: 160, restSeconds: 60 },
+  { category: "Running", amount: 500, unit: "m" as const, timeSeconds: 160, restSeconds: 60 },
+  { category: "Running", amount: 500, unit: "m" as const, timeSeconds: 160, restSeconds: 60 },
 ];
 
 type PageMode = "choose" | "plan" | "workout" | "finished";
@@ -131,13 +132,21 @@ export default function WorkoutPage() {
   const [category, setCategory] = useState(categories[0]);
   const [amount, setAmount] = useState("500");
   const [time, setTime] = useState("02:40");
+  const [restTime, setRestTime] = useState("01:00");
   const [error, setError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [isEditingName, setIsEditingName] = useState(false);
   const [nameDraft, setNameDraft] = useState("My workout");
+  const [showAbortConfirmation, setShowAbortConfirmation] = useState(false);
+  const [pendingFlow, setPendingFlow] = useState<WorkoutFlow | null>(null);
+  const [showStartSheet, setShowStartSheet] = useState(true);
 
   const totalTime = useMemo(
     () => sets.reduce((total, set) => total + set.timeSeconds, 0),
+    [sets]
+  );
+  const totalRestTime = useMemo(
+    () => sets.reduce((total, set) => total + set.restSeconds, 0),
     [sets]
   );
   const totalDistance = useMemo(
@@ -153,17 +162,21 @@ export default function WorkoutPage() {
     [sets]
   );
 
-  const startOwnWorkout = () => {
+  const startOwnWorkout = useCallback(() => {
+    setShowStartSheet(false);
     setSource("own");
     setWorkoutName("My workout");
     setNameDraft("My workout");
     setDate(localDateValue());
     setSets([]);
     setError("");
+    setShowAbortConfirmation(false);
+    setPendingFlow(null);
     setMode("workout");
-  };
+  }, []);
 
   const startPlannedWorkout = () => {
+    setShowStartSheet(false);
     setSource("plan");
     setWorkoutName("HYROX running intervals");
     setNameDraft("HYROX running intervals");
@@ -176,6 +189,8 @@ export default function WorkoutPage() {
       }))
     );
     setError("");
+    setShowAbortConfirmation(false);
+    setPendingFlow(null);
     setMode("workout");
   };
 
@@ -183,6 +198,7 @@ export default function WorkoutPage() {
     setError("");
     const numericAmount = Number(amount);
     const timeSeconds = parseTime(time);
+    const restSeconds = parseTime(restTime);
     if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
       setError("Enter a distance, weight, or rep count greater than zero.");
       return;
@@ -193,6 +209,10 @@ export default function WorkoutPage() {
     }
     if (timeSeconds === null) {
       setError("Enter time in minutes and seconds, for example 02:40.");
+      return;
+    }
+    if (restSeconds === null) {
+      setError("Enter rest time in minutes and seconds, for example 01:00.");
       return;
     }
     if (sets.length >= 100) {
@@ -208,6 +228,7 @@ export default function WorkoutPage() {
         amount: numericAmount,
         unit: getUnit(category),
         timeSeconds,
+        restSeconds,
         completed: false,
       },
     ]);
@@ -241,6 +262,16 @@ export default function WorkoutPage() {
     }
     setError("");
     updateSet(set.id, { timeSeconds: nextTime });
+  };
+
+  const updateSetRest = (set: WorkoutSet, value: string) => {
+    const nextRest = parseTime(value);
+    if (nextRest === null) {
+      setError("Use minutes and seconds for rest, for example 01:00.");
+      return;
+    }
+    setError("");
+    updateSet(set.id, { restSeconds: nextRest });
   };
 
   const finishWorkout = async () => {
@@ -284,6 +315,8 @@ export default function WorkoutPage() {
   const resetWorkout = () => {
     setSets([]);
     setError("");
+    setPendingFlow(null);
+    setShowStartSheet(true);
     setMode("choose");
   };
 
@@ -298,8 +331,56 @@ export default function WorkoutPage() {
     return groups;
   }, {});
 
+  useEffect(() => {
+    const handleOpenWorkoutSheet = () => setShowStartSheet(true);
+    const handleWorkoutFlow = () => {
+      const flow = sessionStorage.getItem("hyrox_workout_flow");
+      if (flow !== "own" && flow !== "plan") return;
+      sessionStorage.removeItem("hyrox_workout_flow");
+
+      if (mode === "workout" && sets.length > 0) {
+        setPendingFlow(flow);
+        setShowAbortConfirmation(true);
+        return;
+      }
+
+      if (flow === "own") {
+        startOwnWorkout();
+      } else {
+        setShowStartSheet(false);
+        setMode("plan");
+      }
+    };
+
+    window.addEventListener("hyrox-workout-flow", handleWorkoutFlow);
+    window.addEventListener("hyrox-open-workout-sheet", handleOpenWorkoutSheet);
+    handleWorkoutFlow();
+    return () => {
+      window.removeEventListener("hyrox-workout-flow", handleWorkoutFlow);
+      window.removeEventListener("hyrox-open-workout-sheet", handleOpenWorkoutSheet);
+    };
+  }, [mode, sets, startOwnWorkout]);
+
+  const abortWorkout = () => {
+    setShowAbortConfirmation(false);
+    setSets([]);
+    setError("");
+    setIsEditingName(false);
+
+    if (pendingFlow === "own") {
+      setPendingFlow(null);
+      startOwnWorkout();
+    } else if (pendingFlow === "plan") {
+      setPendingFlow(null);
+      setShowStartSheet(false);
+      setMode("plan");
+    } else {
+      resetWorkout();
+    }
+  };
+
   return (
-    <main className="min-h-screen px-3 pb-28 pt-5 sm:px-5 sm:pt-8">
+    <main className={`min-h-screen px-3 pt-5 sm:px-5 sm:pt-8 ${mode === "workout" ? "pb-[310px]" : "pb-28"}`}>
       <div className="mx-auto max-w-[680px]">
         <header className="mb-5 flex items-start justify-between gap-3 px-1">
           <div>
@@ -312,18 +393,28 @@ export default function WorkoutPage() {
             </p>
           </div>
           {mode === "workout" && (
-            <button
-              type="button"
-              onClick={finishWorkout}
-              disabled={!sets.length || isSaving}
-              aria-label="Finish workout"
-              className="flex shrink-0 flex-col items-center gap-1.5 pt-1 text-[10px] font-semibold text-slate-600 disabled:opacity-40"
-            >
-              <span className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_6px_16px_rgba(16,185,129,0.28)] transition hover:bg-emerald-600">
-                {isSaving ? <span className="text-xs">…</span> : <CheckIcon className="h-5 w-5" />}
-              </span>
-              {isSaving ? "Saving" : "Finish workout"}
-            </button>
+            <div className="flex shrink-0 flex-col items-center gap-1">
+              <button
+                type="button"
+                onClick={finishWorkout}
+                disabled={!sets.length || isSaving}
+                aria-label="Finish workout"
+                className="flex flex-col items-center gap-1 text-[10px] font-semibold text-slate-600 disabled:opacity-40"
+              >
+                <span className="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-500 text-white shadow-[0_6px_16px_rgba(16,185,129,0.28)] transition hover:bg-emerald-600">
+                  {isSaving ? <span className="text-xs">…</span> : <CheckIcon className="h-5 w-5" />}
+                </span>
+                {isSaving ? "Saving" : "Finish"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowAbortConfirmation(true)}
+                disabled={isSaving}
+                className="rounded-full px-2 py-1 text-[10px] font-semibold text-rose-600 hover:bg-rose-50 disabled:opacity-40"
+              >
+                Abort workout
+              </button>
+            </div>
           )}
         </header>
 
@@ -334,69 +425,15 @@ export default function WorkoutPage() {
         )}
 
         {mode === "choose" && (
-          <section className="space-y-3">
-            <button
-              type="button"
-              onClick={() => setMode("plan")}
-              className="group flex w-full items-center gap-4 rounded-[1.7rem] border border-white/85 bg-white/85 p-5 text-left shadow-[0_12px_30px_rgba(47,68,85,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(47,68,85,0.1)] sm:p-6"
-            >
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#eaf1f6] text-[#527b9f]">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6" aria-hidden="true">
-                  <path d="M5 4.5h14M5 9.5h14M5 14.5h9M5 19.5h9" />
-                  <path d="m17 17 2 2 3-4" />
-                </svg>
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block font-semibold text-slate-800">Follow plan</span>
-                <span className="mt-1 block text-xs leading-relaxed text-slate-500">Load today&apos;s planned sets and tick them off as you go.</span>
-              </span>
-              <span className="text-xl text-slate-300 transition group-hover:translate-x-1 group-hover:text-slate-500" aria-hidden="true">›</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={startOwnWorkout}
-              className="group flex w-full items-center gap-4 rounded-[1.7rem] border border-white/85 bg-white/85 p-5 text-left shadow-[0_12px_30px_rgba(47,68,85,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_34px_rgba(47,68,85,0.1)] sm:p-6"
-            >
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#f7efe5] text-[#bf8249]">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-6 w-6" aria-hidden="true">
-                  <path d="M12 5v14M5 12h14" />
-                  <circle cx="12" cy="12" r="9" />
-                </svg>
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block font-semibold text-slate-800">Log own workout</span>
-                <span className="mt-1 block text-xs leading-relaxed text-slate-500">Create a workout and add your own exercises and sets.</span>
-              </span>
-              <span className="text-xl text-slate-300 transition group-hover:translate-x-1 group-hover:text-slate-500" aria-hidden="true">›</span>
-            </button>
-          </section>
+          <div className="rounded-[1.8rem] border border-white/80 bg-white/60 p-5 text-sm text-slate-500">
+            Choose a workout option to get started.
+          </div>
         )}
 
         {mode === "plan" && (
-          <section className="rounded-[1.8rem] border border-white/85 bg-white/85 p-5 shadow-[0_12px_30px_rgba(47,68,85,0.06)] sm:p-7">
-            <button type="button" onClick={() => setMode("choose")} className="mb-5 text-xs font-semibold text-[#527b9f] hover:text-slate-800">
-              ← Back to options
-            </button>
-            <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#66839a]">SAMPLE PLAN · REPLACE IN SETTINGS LATER</p>
-            <h2 className="mt-2 text-xl font-semibold tracking-tight text-slate-800">HYROX running intervals</h2>
-            <p className="mt-1 text-sm text-slate-500">A simple example plan for trying the planned-workout flow.</p>
-            <div className="my-5 space-y-2">
-              {samplePlan.map((set, index) => (
-                <div key={index} className="flex items-center justify-between rounded-xl bg-[#f7f9fb] px-4 py-3 text-sm">
-                  <span className="font-medium text-slate-600">Run · Set {index + 1}</span>
-                  <span className="font-semibold tabular-nums text-slate-800">{set.amount} m <span className="ml-2 text-slate-500">{formatTime(set.timeSeconds)}</span></span>
-                </div>
-              ))}
-            </div>
-            <button
-              type="button"
-              onClick={startPlannedWorkout}
-              className="w-full rounded-xl bg-[#273744] px-4 py-3.5 text-sm font-semibold text-white transition hover:bg-[#354c5d]"
-            >
-              Start planned workout · import 4 sets
-            </button>
-          </section>
+          <div className="rounded-[1.8rem] border border-white/80 bg-white/60 p-5 text-sm text-slate-500">
+            Review today&apos;s sample plan, then import its sets to begin.
+          </div>
         )}
 
         {mode === "workout" && (
@@ -497,6 +534,11 @@ export default function WorkoutPage() {
                               value={formatTime(set.timeSeconds)}
                               onSave={(value) => updateSetTime(set, value)}
                             />
+                            <EditableValue
+                              label={`set ${index + 1} rest time`}
+                              value={formatTime(set.restSeconds)}
+                              onSave={(value) => updateSetRest(set, value)}
+                            />
                           </li>
                         ))}
                       </ol>
@@ -506,61 +548,6 @@ export default function WorkoutPage() {
               )}
             </section>
 
-            <section className="rounded-[1.8rem] border border-white/85 bg-white/85 p-4 shadow-[0_12px_30px_rgba(47,68,85,0.06)] sm:p-5">
-              <div className="grid grid-cols-[minmax(0,1.1fr)_minmax(72px,0.75fr)_minmax(84px,0.8fr)_48px] items-end gap-2">
-                <label className="min-w-0">
-                  <span className="mb-1.5 block text-[9px] font-bold uppercase tracking-wide text-slate-400">Exercise</span>
-                  <span className="flex h-11 items-center gap-1.5 rounded-xl border border-slate-200 bg-[#f7f9fb] px-2">
-                    <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true">
-                      <path d="M3 5h14M3 10h14M3 15h14" strokeLinecap="round" />
-                    </svg>
-                    <select
-                      aria-label="Training category"
-                      value={category}
-                      onChange={(event) => changeCategory(event.target.value)}
-                      className="w-full min-w-0 appearance-none bg-transparent text-[11px] font-semibold text-slate-700 outline-none"
-                    >
-                      {categories.map((option) => <option key={option}>{option}</option>)}
-                    </select>
-                  </span>
-                </label>
-                <label className="min-w-0">
-                  <span className="mb-1.5 block text-[9px] font-bold uppercase tracking-wide text-slate-400">{getUnit(category) === "m" ? "Distance" : getUnit(category) === "kg" ? "Weight" : "Reps"} · {getUnit(category)}</span>
-                  <input
-                    type="number"
-                    inputMode="decimal"
-                    min="0.1"
-                    step={getUnit(category) === "reps" ? "1" : "0.1"}
-                    value={amount}
-                    onChange={(event) => setAmount(event.target.value)}
-                    aria-label={`${getUnit(category)} amount`}
-                    className="h-11 w-full rounded-xl border border-slate-200 bg-[#f7f9fb] px-2 text-sm font-semibold text-slate-700 outline-none focus:border-[#9bb4c7]"
-                  />
-                </label>
-                <label className="min-w-0">
-                  <span className="mb-1.5 block text-[9px] font-bold uppercase tracking-wide text-slate-400">Time · mm:ss</span>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={time}
-                    onChange={(event) => setTime(event.target.value)}
-                    aria-label="Set time in minutes and seconds"
-                    className="h-11 w-full rounded-xl border border-slate-200 bg-[#f7f9fb] px-2 text-sm font-semibold tabular-nums text-slate-700 outline-none focus:border-[#9bb4c7]"
-                    placeholder="02:40"
-                  />
-                </label>
-                <button
-                  type="button"
-                  onClick={addSet}
-                  aria-label="Add set"
-                  className="flex h-11 w-11 items-center justify-center self-end rounded-full bg-[#273744] text-white shadow-sm transition hover:scale-105 hover:bg-[#354c5d]"
-                >
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="h-5 w-5" aria-hidden="true">
-                    <path d="M12 5v14M5 12h14" />
-                  </svg>
-                </button>
-              </div>
-            </section>
           </div>
         )}
 
@@ -588,6 +575,7 @@ export default function WorkoutPage() {
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               <Stat label="Sets done" value={`${sets.length}/${sets.length}`} />
               <Stat label="Set time" value={formatTime(totalTime)} />
+              <Stat label="Total rest" value={formatTime(totalRestTime)} />
               {totalDistance > 0 && <Stat label="Distance" value={formatVolume(totalDistance, "m")} />}
               {totalWeight > 0 && <Stat label="Total weight" value={formatVolume(totalWeight, "kg")} />}
               {totalReps > 0 && <Stat label="Total reps" value={formatVolume(totalReps, "reps")} />}
@@ -605,6 +593,192 @@ export default function WorkoutPage() {
           </section>
         )}
       </div>
+
+      {showStartSheet && mode !== "plan" && (
+        <WorkoutStartSheet
+          onClose={() => {
+            setShowStartSheet(false);
+            if (mode === "choose") router.push("/dashboard");
+          }}
+          onSelect={(flow) => {
+            setShowStartSheet(false);
+            if (mode === "workout" && sets.length > 0) {
+              setPendingFlow(flow);
+              setShowAbortConfirmation(true);
+            } else if (flow === "own") {
+              startOwnWorkout();
+            } else {
+              setMode("plan");
+            }
+          }}
+        />
+      )}
+
+      {mode === "plan" && (
+        <div className="fixed inset-0 z-[60]">
+          <button
+            type="button"
+            aria-label="Close planned workout"
+            onClick={() => {
+              setMode("choose");
+              setShowStartSheet(true);
+            }}
+            className="absolute inset-0 bg-slate-900/20 backdrop-blur-[2px]"
+          />
+          <section
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="planned-workout-title"
+            className="workout-sheet absolute left-1/2 w-[calc(100%-24px)] max-w-[420px] -translate-x-1/2 rounded-[1.7rem] border border-white/80 bg-white/95 p-5 shadow-[0_20px_60px_rgba(27,42,54,0.22)]"
+            style={{ bottom: "calc(max(12px, env(safe-area-inset-bottom)) + 88px)" }}
+          >
+            <div className="mb-4 flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#66839a]">SAMPLE PLAN · SETTINGS COMING LATER</p>
+                <h2 id="planned-workout-title" className="mt-1 text-lg font-semibold text-slate-800">HYROX running intervals</h2>
+                <p className="mt-1 text-xs text-slate-500">The plan&apos;s sets will be added to your workout.</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setMode("choose");
+                  setShowStartSheet(true);
+                }}
+                aria-label="Back to workout options"
+                className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"
+              >
+                ×
+              </button>
+            </div>
+            <div className="mb-4 space-y-2">
+              {samplePlan.map((set, index) => (
+                <div key={index} className="flex items-center justify-between rounded-xl bg-[#f7f9fb] px-3 py-2.5 text-xs">
+                  <span className="font-medium text-slate-600">Run · Set {index + 1}</span>
+                  <span className="font-semibold tabular-nums text-slate-800">{set.amount} m · {formatTime(set.timeSeconds)} <span className="font-medium text-slate-500">rest {formatTime(set.restSeconds)}</span></span>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={startPlannedWorkout}
+              className="w-full rounded-xl bg-[#273744] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#354c5d]"
+            >
+              Start plan · import {samplePlan.length} sets
+            </button>
+          </section>
+        </div>
+      )}
+
+      {showAbortConfirmation && (
+        <div className="fixed inset-0 z-[70] flex items-end justify-center bg-slate-900/25 px-3 pb-[max(100px,calc(env(safe-area-inset-bottom)+100px))] backdrop-blur-[2px] sm:items-center sm:pb-3">
+          <section
+            role="alertdialog"
+            aria-modal="true"
+            aria-labelledby="abort-workout-title"
+            aria-describedby="abort-workout-description"
+            className="workout-sheet w-full max-w-[380px] rounded-[1.7rem] border border-white/80 bg-white p-5 shadow-[0_20px_60px_rgba(27,42,54,0.22)]"
+          >
+            <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-rose-500">Discard session</p>
+            <h2 id="abort-workout-title" className="mt-1 text-lg font-semibold text-slate-800">Are you sure?</h2>
+            <p id="abort-workout-description" className="mt-2 text-sm leading-relaxed text-slate-500">
+              {pendingFlow ? "Your current workout will be discarded before starting the selected option." : "Your workout and its sets will be discarded."}
+            </p>
+            <div className="mt-5 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowAbortConfirmation(false);
+                  setPendingFlow(null);
+                }}
+                className="rounded-xl bg-slate-100 px-3 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-200"
+              >
+                Keep workout
+              </button>
+              <button
+                type="button"
+                onClick={abortWorkout}
+                className="rounded-xl bg-rose-600 px-3 py-3 text-sm font-semibold text-white hover:bg-rose-700"
+              >
+                Yes, abort
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {mode === "workout" && (
+        <section
+          aria-label="Add workout set"
+          className="fixed left-1/2 z-40 w-[calc(100%-16px)] max-w-[620px] -translate-x-1/2 rounded-[1.35rem] border border-white/90 bg-white/95 p-3 shadow-[0_12px_36px_rgba(35,51,65,0.18)] backdrop-blur-xl"
+          style={{ bottom: "calc(max(12px, env(safe-area-inset-bottom)) + 90px)" }}
+        >
+          <label className="mb-2 block">
+            <span className="sr-only">Training category</span>
+            <span className="flex h-10 items-center gap-2 rounded-xl border border-slate-200 bg-[#f7f9fb] px-3">
+              <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-4 w-4 shrink-0 text-slate-400" aria-hidden="true">
+                <path d="M3 5h14M3 10h14M3 15h14" strokeLinecap="round" />
+              </svg>
+              <select
+                aria-label="Training category"
+                value={category}
+                onChange={(event) => changeCategory(event.target.value)}
+                className="w-full min-w-0 appearance-none bg-transparent text-xs font-semibold text-slate-700 outline-none"
+              >
+                {categories.map((option) => <option key={option}>{option}</option>)}
+              </select>
+            </span>
+          </label>
+          <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_44px] items-end gap-1.5">
+            <label className="min-w-0">
+              <span className="mb-1 block text-[8px] font-bold uppercase tracking-wide text-slate-400">{getUnit(category) === "m" ? "Distance" : getUnit(category) === "kg" ? "Weight" : "Reps"}</span>
+              <input
+                type="number"
+                inputMode="decimal"
+                min="0.1"
+                step={getUnit(category) === "reps" ? "1" : "0.1"}
+                value={amount}
+                onChange={(event) => setAmount(event.target.value)}
+                aria-label={`${getUnit(category)} amount`}
+                className="h-10 w-full rounded-lg border border-slate-200 bg-[#f7f9fb] px-2 text-xs font-semibold text-slate-700 outline-none focus:border-[#9bb4c7]"
+              />
+            </label>
+            <label className="min-w-0">
+              <span className="mb-1 block text-[8px] font-bold uppercase tracking-wide text-slate-400">Time</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={time}
+                onChange={(event) => setTime(event.target.value)}
+                aria-label="Set time in minutes and seconds"
+                className="h-10 w-full rounded-lg border border-slate-200 bg-[#f7f9fb] px-2 text-xs font-semibold tabular-nums text-slate-700 outline-none focus:border-[#9bb4c7]"
+                placeholder="02:40"
+              />
+            </label>
+            <label className="min-w-0">
+              <span className="mb-1 block text-[8px] font-bold uppercase tracking-wide text-slate-400">Rest</span>
+              <input
+                type="text"
+                inputMode="numeric"
+                value={restTime}
+                onChange={(event) => setRestTime(event.target.value)}
+                aria-label="Rest time in minutes and seconds"
+                className="h-10 w-full rounded-lg border border-slate-200 bg-[#f7f9fb] px-2 text-xs font-semibold tabular-nums text-slate-700 outline-none focus:border-[#9bb4c7]"
+                placeholder="01:00"
+              />
+            </label>
+            <button
+              type="button"
+              onClick={addSet}
+              aria-label="Add set"
+              className="flex h-10 w-10 items-center justify-center self-end rounded-full bg-[#273744] text-white shadow-sm transition hover:scale-105 hover:bg-[#354c5d]"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="h-5 w-5" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+            </button>
+          </div>
+        </section>
+      )}
       <Navbar />
     </main>
   );

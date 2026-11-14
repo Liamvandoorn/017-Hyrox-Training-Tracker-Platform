@@ -37,6 +37,10 @@ function isWorkoutSet(value: unknown): value is WorkoutSet {
     Number.isInteger(value.timeSeconds) &&
     value.timeSeconds >= 0 &&
     value.timeSeconds <= 86400 &&
+    typeof value.restSeconds === "number" &&
+    Number.isInteger(value.restSeconds) &&
+    value.restSeconds >= 0 &&
+    value.restSeconds <= 86400 &&
     typeof value.completed === "boolean"
   );
 }

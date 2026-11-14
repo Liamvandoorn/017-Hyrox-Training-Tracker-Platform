@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import { useState } from "react";
+import WorkoutStartSheet, { WorkoutFlow } from "@/components/WorkoutStartSheet";
 
 const items = [
   {
@@ -23,29 +25,73 @@ const items = [
 
 export default function Navbar() {
   const pathname = usePathname();
+  const router = useRouter();
+  const [isWorkoutSheetOpen, setIsWorkoutSheetOpen] = useState(false);
+
+  const startWorkout = (flow: WorkoutFlow) => {
+    sessionStorage.setItem("hyrox_workout_flow", flow);
+    setIsWorkoutSheetOpen(false);
+    if (pathname !== "/workout") {
+      router.push("/workout");
+    } else {
+      window.dispatchEvent(new Event("hyrox-workout-flow"));
+    }
+  };
 
   return (
-    <nav aria-label="Main navigation" className="fixed bottom-[max(12px,env(safe-area-inset-bottom))] left-1/2 z-50 w-[calc(100%-24px)] max-w-[420px] -translate-x-1/2 rounded-[1.55rem] border border-white/80 bg-white/90 p-2 shadow-[0_14px_38px_rgba(35,51,65,0.16)] backdrop-blur-xl">
-      <div className="grid grid-cols-3 gap-1">
-        {items.map((item) => {
-          const active = pathname === item.href;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              aria-current={active ? "page" : undefined}
-              className={`flex min-h-[54px] flex-col items-center justify-center gap-1 rounded-[1.15rem] transition-colors ${
-                active ? "bg-[#273744] text-white shadow-sm" : "text-slate-400 hover:bg-slate-50 hover:text-slate-700"
-              }`}
-            >
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]" aria-hidden="true">
-                {item.icon}
-              </svg>
-              <span className="text-[9px] font-semibold tracking-wide">{item.label}</span>
-            </Link>
-          );
-        })}
-      </div>
-    </nav>
+    <>
+      <nav aria-label="Main navigation" className="fixed bottom-[max(12px,env(safe-area-inset-bottom))] left-1/2 z-50 w-[calc(100%-24px)] max-w-[420px] -translate-x-1/2 rounded-[1.55rem] border border-white/80 bg-white/90 p-2 shadow-[0_14px_38px_rgba(35,51,65,0.16)] backdrop-blur-xl">
+        <div className="grid grid-cols-3 gap-1">
+          {items.map((item) => {
+            const active = pathname === item.href;
+            const className = `flex min-h-[54px] flex-col items-center justify-center gap-1 rounded-[1.15rem] transition-colors ${
+              active || (item.href === "/workout" && isWorkoutSheetOpen)
+                ? "bg-[#273744] text-white shadow-sm"
+                : "text-slate-400 hover:bg-slate-50 hover:text-slate-700"
+            }`;
+
+            return item.href === "/workout" ? (
+              <button
+                key={item.href}
+                type="button"
+                aria-expanded={isWorkoutSheetOpen}
+                aria-haspopup="dialog"
+                onClick={() => {
+                  if (pathname === "/workout") {
+                    window.dispatchEvent(new Event("hyrox-open-workout-sheet"));
+                  } else {
+                    setIsWorkoutSheetOpen((open) => !open);
+                  }
+                }}
+                className={className}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]" aria-hidden="true">
+                  {item.icon}
+                </svg>
+                <span className="text-[9px] font-semibold tracking-wide">{item.label}</span>
+              </button>
+            ) : (
+              <Link
+                key={item.href}
+                href={item.href}
+                aria-current={active ? "page" : undefined}
+                className={className}
+              >
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]" aria-hidden="true">
+                  {item.icon}
+                </svg>
+                <span className="text-[9px] font-semibold tracking-wide">{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+      </nav>
+      {isWorkoutSheetOpen && pathname !== "/workout" && (
+        <WorkoutStartSheet
+          onClose={() => setIsWorkoutSheetOpen(false)}
+          onSelect={startWorkout}
+        />
+      )}
+    </>
   );
 }
