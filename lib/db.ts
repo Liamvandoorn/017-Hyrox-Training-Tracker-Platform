@@ -82,7 +82,7 @@ export async function addWorkout(
   const result = await query(
     `INSERT INTO workouts (name, date, source, sets)
      VALUES ($1, $2, $3, $4::jsonb)
-     RETURNING id, name, date, source, sets, created_at`,
+     RETURNING id, name, date::text AS date, source, sets, created_at`,
     [name, date, source, JSON.stringify(sets)]
   );
   return result.rows[0];
@@ -90,7 +90,7 @@ export async function addWorkout(
 
 export async function getWorkouts() {
   const result = await query(
-    "SELECT id, name, date, source, sets, created_at FROM workouts ORDER BY date DESC, created_at DESC LIMIT 50"
+    "SELECT id, name, date::text AS date, source, sets, created_at FROM workouts ORDER BY date DESC, created_at DESC LIMIT 50"
   );
   return result.rows;
 }

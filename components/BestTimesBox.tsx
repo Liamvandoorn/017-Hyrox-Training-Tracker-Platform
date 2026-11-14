@@ -1,19 +1,23 @@
 "use client";
 
+export type BestTimeKey =
+  | "running"
+  | "skiing"
+  | "rowing"
+  | "sledPull"
+  | "sledPush"
+  | "burpeeBroad"
+  | "sandbagLunges"
+  | "wallBalls";
+
+export type BestTimes = Partial<Record<BestTimeKey, string>>;
+
 interface BestTimesBoxProps {
-  times?: {
-    running?: string;
-    skiing?: string;
-    rowing?: string;
-    sledPull?: string;
-    sledPush?: string;
-    burpeeBroad?: string;
-    sandbagLunges?: string;
-    wallBalls?: string;
-  };
+  times?: BestTimes;
+  status?: string;
 }
 
-export default function BestTimesBox({ times }: BestTimesBoxProps) {
+export default function BestTimesBox({ times, status }: BestTimesBoxProps) {
   const exercises = [
     { label: "Running", value: times?.running },
     { label: "SkiErg", value: times?.skiing },
@@ -36,6 +40,7 @@ export default function BestTimesBox({ times }: BestTimesBoxProps) {
         </div>
         <span className="rounded-full bg-[#edf3f7] px-2.5 py-1 text-[10px] font-semibold text-slate-500">HYROX</span>
       </div>
+      {status && <p role="status" className="mb-1 text-[10px] text-slate-400">{status}</p>}
       <ul className="space-y-0.5">
         {exercises.map((exercise) => (
           <li key={exercise.label} className="flex items-center justify-between gap-2 border-b border-slate-100/90 py-[5px] last:border-0">

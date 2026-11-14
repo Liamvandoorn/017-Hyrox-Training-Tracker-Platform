@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import AITrainingSummary from "@/components/AITrainingSummary";
-import BestTimesBox from "@/components/BestTimesBox";
+import BestTimesBox, { type BestTimeKey, type BestTimes } from "@/components/BestTimesBox";
 import ChartContainer from "@/components/ChartContainer";
 import DayCarousel from "@/components/DayCarousel";
 import Navbar from "@/components/Navbar";
@@ -13,6 +13,7 @@ import TotalTimeBox from "@/components/TotalTimeBox";
 interface DashboardWorkoutSet {
   category: string;
   amount: number;
+  weightKg?: number;
   unit: "m" | "kg" | "reps";
   timeSeconds: number;
   completed: boolean;
@@ -27,6 +28,16 @@ interface DashboardWorkout {
 const DAY_MS = 24 * 60 * 60 * 1000;
 const WEEK_MS = 7 * DAY_MS;
 const WEEK_COUNT = 7;
+const bestTimeKeys: Record<string, BestTimeKey> = {
+  running: "running",
+  skierg: "skiing",
+  rowing: "rowing",
+  "sled pull": "sledPull",
+  "sled push": "sledPush",
+  "burpee broad jumps": "burpeeBroad",
+  "sandbag lunges": "sandbagLunges",
+  "wall balls": "wallBalls",
+};
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -46,10 +57,16 @@ function isDashboardWorkoutSet(value: unknown): value is DashboardWorkoutSet {
     typeof value.category === "string" &&
     typeof value.amount === "number" &&
     Number.isFinite(value.amount) &&
+    value.amount > 0 &&
+    (value.weightKg === undefined ||
+      (typeof value.weightKg === "number" &&
+        Number.isFinite(value.weightKg) &&
+        value.weightKg > 0)) &&
     (value.unit === "m" || value.unit === "kg" || value.unit === "reps") &&
     typeof value.timeSeconds === "number" &&
     Number.isInteger(value.timeSeconds) &&
     value.timeSeconds >= 0 &&
+    value.timeSeconds <= 86400 &&
     typeof value.completed === "boolean"
   );
 }
@@ -117,6 +134,33 @@ function getSimulationHistory(workouts: DashboardWorkout[]) {
     .sort((left, right) => left.date.localeCompare(right.date));
 }
 
+function getBestExerciseTimes(workouts: DashboardWorkout[]): BestTimes {
+  const fastest = new Map<BestTimeKey, { seconds: number; measurement: string }>();
+
+  for (const workout of workouts) {
+    for (const set of workout.sets) {
+      const key = bestTimeKeys[set.category.trim().toLowerCase()];
+      if (!key || !set.completed || set.timeSeconds <= 0) continue;
+
+      const currentBest = fastest.get(key);
+      if (currentBest && currentBest.seconds <= set.timeSeconds) continue;
+
+      const amount = Number.isInteger(set.amount) ? String(set.amount) : set.amount.toFixed(1);
+      const weight = set.weightKg ? ` · ${set.weightKg} kg` : "";
+      fastest.set(key, {
+        seconds: set.timeSeconds,
+        measurement: `${amount} ${set.unit}${weight}`,
+      });
+    }
+  }
+
+  const result: BestTimes = {};
+  for (const [key, best] of fastest) {
+    result[key] = `${formatDuration(best.seconds)} · ${best.measurement}`;
+  }
+  return result;
+}
+
 function formatDuration(seconds: number): string {
   const hours = Math.floor(seconds / 3600);
   const minutes = Math.floor((seconds % 3600) / 60);
@@ -170,6 +214,10 @@ export default function Dashboard() {
   );
   const simulationHistory = useMemo(
     () => getSimulationHistory(workouts ?? []),
+    [workouts]
+  );
+  const bestExerciseTimes = useMemo(
+    () => getBestExerciseTimes(workouts ?? []),
     [workouts]
   );
   const bestSimulationSeconds = simulationHistory.length
@@ -229,7 +277,10 @@ export default function Dashboard() {
         <DayCarousel onDaySelect={setSelectedDate} />
 
         <section className="grid grid-cols-[minmax(0,1.45fr)_minmax(102px,0.82fr)] gap-3 rounded-[1.7rem] border border-white/85 bg-white/85 p-3.5 shadow-[0_14px_38px_rgba(47,68,85,0.08)] sm:gap-5 sm:rounded-[2rem] sm:p-5">
-          <BestTimesBox />
+          <BestTimesBox
+            times={bestExerciseTimes}
+            status={workoutsError ?? (workouts === null ? "Loading workout data..." : undefined)}
+          />
           <TotalTimeBox
             totalTime={bestSimulationSeconds === null ? null : formatDuration(bestSimulationSeconds)}
             lastUpdated={bestTimeDetail}
