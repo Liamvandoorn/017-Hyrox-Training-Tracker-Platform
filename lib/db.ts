@@ -1,4 +1,5 @@
 import { Pool } from "pg";
+import type { WorkoutSet, WorkoutSource } from "@/lib/types";
 
 // Use pooled connection for regular queries (recommended for serverless)
 const pooledConnectionString = process.env.DATABASE_URL;
@@ -64,6 +65,28 @@ export async function deleteTrainingSession(id: number) {
   return result.rowCount;
 }
 
+export async function addWorkout(
+  name: string,
+  date: string,
+  source: WorkoutSource,
+  sets: WorkoutSet[]
+) {
+  const result = await query(
+    `INSERT INTO workouts (name, date, source, sets)
+     VALUES ($1, $2, $3, $4::jsonb)
+     RETURNING id, name, date, source, sets, created_at`,
+    [name, date, source, JSON.stringify(sets)]
+  );
+  return result.rows[0];
+}
+
+export async function getWorkouts() {
+  const result = await query(
+    "SELECT id, name, date, source, sets, created_at FROM workouts ORDER BY date DESC, created_at DESC LIMIT 50"
+  );
+  return result.rows;
+}
+
 export async function initializeDatabase() {
   const createTableQuery = `
     CREATE TABLE IF NOT EXISTS training_sessions (
@@ -78,6 +101,17 @@ export async function initializeDatabase() {
     );
 
     CREATE INDEX IF NOT EXISTS idx_training_sessions_date ON training_sessions(date);
+
+    CREATE TABLE IF NOT EXISTS workouts (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(120) NOT NULL,
+      date DATE NOT NULL,
+      source VARCHAR(10) NOT NULL CHECK (source IN ('own', 'plan')),
+      sets JSONB NOT NULL CHECK (jsonb_typeof(sets) = 'array'),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_workouts_date ON workouts(date DESC);
   `;
 
   // Use schema pool for CREATE TABLE operations

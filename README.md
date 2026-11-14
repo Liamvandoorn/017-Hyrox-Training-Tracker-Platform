@@ -7,8 +7,10 @@ A progressive web app (PWA) built with Next.js for tracking Hyrox training sessi
 - 🔐 **Passcode Protected** - Secure access with customizable passcode
 - 📱 **PWA Ready** - Works on mobile and desktop, installable as an app
 - 📊 **Track Training** - Log exercises, duration, distance, and notes
+- 🏋️ **Workout Builder** - Follow the sample plan or build a session from editable sets
 - 🗄️ **Neon Database** - PostgreSQL database for persistent storage
-- 🎨 **Dark Theme** - Professional dark grey and off-white styling
+- 📈 **Workout Recaps** - Complete sets and review session volume and set time
+- 🎨 **Responsive UI** - Mobile-first dashboard and workout logging
 - ⚡ **Fast & Responsive** - Built with Next.js and Tailwind CSS
 
 ## Setup Guide
@@ -45,16 +47,8 @@ NEXT_PUBLIC_PASSCODE=1234
 
 ### 4. Initialize the Database
 
-Run the development server - the database will be initialized on first run:
-
 ```bash
-npm run dev
-```
-
-Or manually initialize with:
-
-```bash
-node -e "require('./lib/db.ts').initializeDatabase()"
+npm run init-db
 ```
 
 ### 5. Access the Application
@@ -79,10 +73,10 @@ Open [http://localhost:3000](http://localhost:3000) and enter the passcode to ac
 ## Usage
 
 1. **Unlock** - Enter the passcode to access the app
-2. **Add Session** - Fill in the exercise details (date, exercise type, duration, etc.)
-3. **View History** - See all your past training sessions
-4. **Delete Session** - Remove sessions as needed
-5. **Logout** - Clear the app from your device
+2. **Log Workout** - Follow the sample plan or create your own workout
+3. **Build sets** - Choose an exercise, enter distance/weight/reps and time, and add sets
+4. **Complete sets** - Tap each numbered circle as you finish a set; finish the workout to mark all sets complete and save a recap
+5. **Plan setup** - Planned workouts can be configured in Settings in a future update; Follow plan currently uses a clearly marked sample
 
 ## Deployment
 
@@ -128,7 +122,20 @@ CREATE TABLE training_sessions (
 );
 
 CREATE INDEX idx_training_sessions_date ON training_sessions(date);
+
+CREATE TABLE workouts (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  date DATE NOT NULL,
+  source VARCHAR(10) NOT NULL CHECK (source IN ('own', 'plan')),
+  sets JSONB NOT NULL CHECK (jsonb_typeof(sets) = 'array'),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_workouts_date ON workouts(date DESC);
 ```
+
+Completed workouts are saved through `POST /api/workouts`; run `npm run init-db` after updating to create the workouts table in Neon.
 
 ## File Structure
 

@@ -3,7 +3,8 @@
 require('dotenv').config({ path: '.env.local' });
 const { Pool } = require('pg');
 
-const connectionString = process.env.DATABASE_URL;
+const connectionString =
+  process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL;
 
 if (!connectionString) {
   console.error('❌ DATABASE_URL environment variable is not set');
@@ -29,6 +30,17 @@ async function initializeDatabase() {
       );
 
       CREATE INDEX IF NOT EXISTS idx_training_sessions_date ON training_sessions(date);
+
+      CREATE TABLE IF NOT EXISTS workouts (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(120) NOT NULL,
+        date DATE NOT NULL,
+        source VARCHAR(10) NOT NULL CHECK (source IN ('own', 'plan')),
+        sets JSONB NOT NULL CHECK (jsonb_typeof(sets) = 'array'),
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_workouts_date ON workouts(date DESC);
     `;
 
     await pool.query(createTableQuery);
