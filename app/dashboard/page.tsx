@@ -6,24 +6,11 @@ import AITrainingSummary from "@/components/AITrainingSummary";
 import BestTimesBox, { type BestTimeKey, type BestTimes } from "@/components/BestTimesBox";
 import ChartContainer from "@/components/ChartContainer";
 import DayCarousel from "@/components/DayCarousel";
+import DayWorkoutPreview from "@/components/DayWorkoutPreview";
 import Navbar from "@/components/Navbar";
 import SimpleChart from "@/components/SimpleChart";
 import TotalTimeBox from "@/components/TotalTimeBox";
-
-interface DashboardWorkoutSet {
-  category: string;
-  amount: number;
-  weightKg?: number;
-  unit: "m" | "kg" | "reps";
-  timeSeconds: number;
-  completed: boolean;
-}
-
-interface DashboardWorkout {
-  name: string;
-  date: string;
-  sets: DashboardWorkoutSet[];
-}
+import type { WorkoutRecord, WorkoutSet } from "@/lib/types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const WEEK_MS = 7 * DAY_MS;
@@ -51,13 +38,16 @@ function isValidDate(value: unknown): value is string {
   return !Number.isNaN(date.getTime()) && date.toISOString().slice(0, 10) === value;
 }
 
-function isDashboardWorkoutSet(value: unknown): value is DashboardWorkoutSet {
+function isDashboardWorkoutSet(value: unknown): value is WorkoutSet {
   if (!isRecord(value)) return false;
   return (
+    typeof value.id === "string" &&
+    value.id.length > 0 &&
     typeof value.category === "string" &&
     typeof value.amount === "number" &&
     Number.isFinite(value.amount) &&
     value.amount > 0 &&
+    value.amount <= 100000 &&
     (value.weightKg === undefined ||
       (typeof value.weightKg === "number" &&
         Number.isFinite(value.weightKg) &&
@@ -67,18 +57,32 @@ function isDashboardWorkoutSet(value: unknown): value is DashboardWorkoutSet {
     Number.isInteger(value.timeSeconds) &&
     value.timeSeconds >= 0 &&
     value.timeSeconds <= 86400 &&
+    typeof value.restSeconds === "number" &&
+    Number.isInteger(value.restSeconds) &&
+    value.restSeconds >= 0 &&
+    value.restSeconds <= 86400 &&
     typeof value.completed === "boolean"
   );
 }
 
-function isDashboardWorkout(value: unknown): value is DashboardWorkout {
+function isDashboardWorkout(value: unknown): value is WorkoutRecord {
   return (
     isRecord(value) &&
+    typeof value.id === "number" &&
     typeof value.name === "string" &&
     isValidDate(value.date) &&
+    (value.source === "own" || value.source === "plan") &&
     Array.isArray(value.sets) &&
-    value.sets.every(isDashboardWorkoutSet)
+    value.sets.every(isDashboardWorkoutSet) &&
+    typeof value.created_at === "string"
   );
+}
+
+function getDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 }
 
 function getMondayStart(timestamp: number): number {
@@ -86,7 +90,7 @@ function getMondayStart(timestamp: number): number {
   return timestamp - ((day + 6) % 7) * DAY_MS;
 }
 
-function getWeeklyRunningTrend(workouts: DashboardWorkout[]) {
+function getWeeklyRunningTrend(workouts: WorkoutRecord[]) {
   const now = new Date();
   const today = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
   const currentWeekStart = getMondayStart(today);
@@ -120,7 +124,7 @@ function getWeeklyRunningTrend(workouts: DashboardWorkout[]) {
   };
 }
 
-function getSimulationHistory(workouts: DashboardWorkout[]) {
+function getSimulationHistory(workouts: WorkoutRecord[]) {
   return workouts
     .map((workout) => ({
       date: workout.date,
@@ -133,7 +137,7 @@ function getSimulationHistory(workouts: DashboardWorkout[]) {
     .sort((left, right) => left.date.localeCompare(right.date));
 }
 
-function getBestExerciseTimes(workouts: DashboardWorkout[]): BestTimes {
+function getBestExerciseTimes(workouts: WorkoutRecord[]): BestTimes {
   const fastest = new Map<BestTimeKey, { seconds: number; measurement: string }>();
 
   for (const workout of workouts) {
@@ -171,8 +175,9 @@ function formatDuration(seconds: number): string {
 
 export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
-  const [workouts, setWorkouts] = useState<DashboardWorkout[] | null>(null);
+  const [workouts, setWorkouts] = useState<WorkoutRecord[] | null>(null);
   const [workoutsError, setWorkoutsError] = useState<string | null>(null);
+  const [showDayPreview, setShowDayPreview] = useState(false);
   const router = useRouter();
 
   useEffect(() => {
@@ -244,8 +249,17 @@ export default function Dashboard() {
     : workouts === null
       ? "Loading..."
       : bestSimulationSeconds === null
-        ? "No simulation yet"
+        ? "No timed workouts yet"
         : "Personal best";
+  const workoutCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+    for (const workout of workouts ?? []) {
+      counts[workout.date] = (counts[workout.date] ?? 0) + 1;
+    }
+    return counts;
+  }, [workouts]);
+  const selectedDateKey = getDateKey(selectedDate);
+  const selectedWorkouts = workouts?.filter((workout) => workout.date === selectedDateKey) ?? null;
 
   return (
     <main className="min-h-screen px-3 pb-28 pt-5 sm:px-5 sm:pt-8">
@@ -273,7 +287,13 @@ export default function Dashboard() {
           </button>
         </header>
 
-        <DayCarousel onDaySelect={setSelectedDate} />
+        <DayCarousel
+          workoutCounts={workoutCounts}
+          onDaySelect={(date) => {
+            setSelectedDate(date);
+            setShowDayPreview(true);
+          }}
+        />
 
         <section className="grid grid-cols-[minmax(0,1.45fr)_minmax(102px,0.82fr)] gap-3 rounded-[1.7rem] border border-white/85 bg-white/85 p-3.5 shadow-[0_14px_38px_rgba(47,68,85,0.08)] sm:gap-5 sm:rounded-[2rem] sm:p-5">
           <BestTimesBox
@@ -330,6 +350,14 @@ export default function Dashboard() {
         <AITrainingSummary summary="Your training summary will appear here once workout logging is connected. Keep recording your sessions to see trends in running volume, station pace, and recovery." />
       </div>
       <Navbar />
+      {showDayPreview && (
+        <DayWorkoutPreview
+          date={selectedDate}
+          workouts={selectedWorkouts}
+          error={workoutsError}
+          onClose={() => setShowDayPreview(false)}
+        />
+      )}
     </main>
   );
 }
