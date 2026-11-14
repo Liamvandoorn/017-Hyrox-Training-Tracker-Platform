@@ -12,11 +12,22 @@ export interface TrainingSession {
 export type WorkoutSource = "own" | "plan";
 export type WorkoutSetUnit = "m" | "kg" | "reps";
 
+const exercisesWithDistanceAndWeight = new Set([
+  "Sled push",
+  "Sled pull",
+  "Sandbag lunges",
+]);
+
+export function requiresWeightAndDistance(category: string): boolean {
+  return exercisesWithDistanceAndWeight.has(category);
+}
+
 export interface WorkoutSet {
   id: string;
   category: string;
   amount: number;
   unit: WorkoutSetUnit;
+  weightKg?: number;
   timeSeconds: number;
   restSeconds: number;
   completed: boolean;

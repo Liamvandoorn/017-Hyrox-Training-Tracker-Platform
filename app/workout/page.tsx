@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import WorkoutStartSheet, { WorkoutFlow } from "@/components/WorkoutStartSheet";
+import { requiresWeightAndDistance } from "@/lib/types";
 import type { WorkoutSet, WorkoutSetUnit, WorkoutSource } from "@/lib/types";
 
 const categories = [
@@ -33,8 +34,19 @@ function localDateValue() {
 }
 
 function getUnit(category: string): WorkoutSetUnit {
-  if (["Running", "SkiErg", "Rowing"].includes(category)) return "m";
-  if (["Sled push", "Sled pull", "Sandbag lunges"].includes(category)) return "kg";
+  if (
+    [
+      "Running",
+      "SkiErg",
+      "Rowing",
+      "Sled push",
+      "Sled pull",
+      "Burpee broad jumps",
+      "Sandbag lunges",
+    ].includes(category)
+  ) {
+    return "m";
+  }
   return "reps";
 }
 
@@ -48,6 +60,50 @@ function formatTime(seconds: number) {
   const minutes = Math.floor(seconds / 60);
   const remainingSeconds = seconds % 60;
   return `${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`;
+}
+
+interface TimeInputProps {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}
+
+function TimeInput({ label, value, onChange }: TimeInputProps) {
+  const [minutes = "", seconds = ""] = value.split(":");
+
+  return (
+    <div
+      role="group"
+      aria-label={label}
+      className="flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-[#f7f9fb] px-1 focus-within:border-[#9bb4c7]"
+    >
+      <input
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        maxLength={3}
+        value={minutes}
+        onChange={(event) =>
+          onChange(`${event.target.value.replace(/\D/g, "").slice(0, 3)}:${seconds}`)
+        }
+        aria-label={`${label} minutes`}
+        className="min-w-0 w-1/2 bg-transparent text-center text-xs font-semibold tabular-nums text-slate-700 outline-none"
+      />
+      <span aria-hidden="true" className="text-xs font-semibold text-slate-500">:</span>
+      <input
+        type="text"
+        inputMode="numeric"
+        pattern="[0-9]*"
+        maxLength={2}
+        value={seconds}
+        onChange={(event) =>
+          onChange(`${minutes}:${event.target.value.replace(/\D/g, "").slice(0, 2)}`)
+        }
+        aria-label={`${label} seconds`}
+        className="min-w-0 w-1/2 bg-transparent text-center text-xs font-semibold tabular-nums text-slate-700 outline-none"
+      />
+    </div>
+  );
 }
 
 function formatVolume(amount: number, unit: WorkoutSetUnit) {
@@ -131,6 +187,7 @@ export default function WorkoutPage() {
   const [sets, setSets] = useState<WorkoutSet[]>([]);
   const [category, setCategory] = useState(categories[0]);
   const [amount, setAmount] = useState("500");
+  const [weight, setWeight] = useState("50");
   const [time, setTime] = useState("02:40");
   const [restTime, setRestTime] = useState("01:00");
   const [error, setError] = useState("");
@@ -154,7 +211,12 @@ export default function WorkoutPage() {
     [sets]
   );
   const totalWeight = useMemo(
-    () => sets.filter((set) => set.unit === "kg").reduce((total, set) => total + set.amount, 0),
+    () =>
+      sets.reduce(
+        (total, set) =>
+          total + (set.weightKg ?? (set.unit === "kg" ? set.amount : 0)),
+        0
+      ),
     [sets]
   );
   const totalReps = useMemo(
@@ -197,10 +259,18 @@ export default function WorkoutPage() {
   const addSet = () => {
     setError("");
     const numericAmount = Number(amount);
+    const numericWeight = Number(weight);
     const timeSeconds = parseTime(time);
     const restSeconds = parseTime(restTime);
     if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
       setError("Enter a distance, weight, or rep count greater than zero.");
+      return;
+    }
+    if (
+      requiresWeightAndDistance(category) &&
+      (!Number.isFinite(numericWeight) || numericWeight <= 0)
+    ) {
+      setError("Enter a weight greater than zero.");
       return;
     }
     if (getUnit(category) === "reps" && !Number.isInteger(numericAmount)) {
@@ -227,6 +297,7 @@ export default function WorkoutPage() {
         category,
         amount: numericAmount,
         unit: getUnit(category),
+        ...(requiresWeightAndDistance(category) ? { weightKg: numericWeight } : {}),
         timeSeconds,
         restSeconds,
         completed: false,
@@ -252,6 +323,16 @@ export default function WorkoutPage() {
     }
     setError("");
     updateSet(set.id, { amount: nextAmount });
+  };
+
+  const updateSetWeight = (set: WorkoutSet, value: string) => {
+    const nextWeight = Number(value);
+    if (!Number.isFinite(nextWeight) || nextWeight <= 0) {
+      setError("Weight must be greater than zero.");
+      return;
+    }
+    setError("");
+    updateSet(set.id, { weightKg: nextWeight });
   };
 
   const updateSetTime = (set: WorkoutSet, value: string) => {
@@ -322,7 +403,8 @@ export default function WorkoutPage() {
 
   const changeCategory = (nextCategory: string) => {
     setCategory(nextCategory);
-    setAmount(getUnit(nextCategory) === "m" ? "500" : getUnit(nextCategory) === "kg" ? "50" : "20");
+    setAmount(getUnit(nextCategory) === "m" ? "500" : "20");
+    setWeight("50");
   };
 
   const groupedSets = sets.reduce<Record<string, WorkoutSet[]>>((groups, set) => {
@@ -507,38 +589,49 @@ export default function WorkoutPage() {
                       </div>
                       <ol className="space-y-2">
                         {categorySets.map((set, index) => (
-                          <li key={set.id} className={`flex items-center gap-2 rounded-xl border px-2 py-2 transition sm:gap-3 sm:px-3 ${set.completed ? "border-emerald-100 bg-emerald-50/60" : "border-slate-100 bg-white"}`}>
+                          <li key={set.id} className={`grid grid-cols-[36px_minmax(0,1fr)] items-center gap-x-2 gap-y-1 rounded-xl border px-2 py-2 transition ${set.completed ? "border-emerald-100 bg-emerald-50/60" : "border-slate-100 bg-white"}`}>
                             <button
                               type="button"
                               aria-label={`${set.completed ? "Reopen" : "Complete"} set ${index + 1}`}
                               aria-pressed={set.completed}
                               onClick={() => updateSet(set.id, { completed: !set.completed })}
-                              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition ${
+                              className={`row-span-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition ${
                                 set.completed ? "border-emerald-500 bg-emerald-500 text-white" : "border-slate-200 bg-white text-slate-600 hover:border-emerald-400"
                               }`}
                             >
                               {set.completed ? <CheckIcon /> : index + 1}
                             </button>
-                            <span className="min-w-0 flex-1">
+                            <span className="min-w-0">
                               <span className={`block text-[9px] ${set.completed ? "text-emerald-700" : "text-slate-400"}`}>{set.completed ? "Completed" : `Set ${index + 1}`}</span>
                             </span>
-                            <EditableValue
-                              label={`set ${index + 1} ${set.unit}`}
-                              value={String(set.amount)}
-                              suffix={set.unit}
-                              inputMode="decimal"
-                              onSave={(value) => updateSetAmount(set, value)}
-                            />
-                            <EditableValue
-                              label={`set ${index + 1} time`}
-                              value={formatTime(set.timeSeconds)}
-                              onSave={(value) => updateSetTime(set, value)}
-                            />
-                            <EditableValue
-                              label={`set ${index + 1} rest time`}
-                              value={formatTime(set.restSeconds)}
-                              onSave={(value) => updateSetRest(set, value)}
-                            />
+                            <div className="flex min-w-0 flex-wrap items-center gap-1">
+                              <EditableValue
+                                label={`set ${index + 1} ${set.unit}`}
+                                value={String(set.amount)}
+                                suffix={set.unit}
+                                inputMode="decimal"
+                                onSave={(value) => updateSetAmount(set, value)}
+                              />
+                              {set.weightKg !== undefined && (
+                                <EditableValue
+                                  label={`set ${index + 1} weight`}
+                                  value={String(set.weightKg)}
+                                  suffix="kg"
+                                  inputMode="decimal"
+                                  onSave={(value) => updateSetWeight(set, value)}
+                                />
+                              )}
+                              <EditableValue
+                                label={`set ${index + 1} time`}
+                                value={formatTime(set.timeSeconds)}
+                                onSave={(value) => updateSetTime(set, value)}
+                              />
+                              <EditableValue
+                                label={`set ${index + 1} rest time`}
+                                value={formatTime(set.restSeconds)}
+                                onSave={(value) => updateSetRest(set, value)}
+                              />
+                            </div>
                           </li>
                         ))}
                       </ol>
@@ -728,9 +821,13 @@ export default function WorkoutPage() {
               </select>
             </span>
           </label>
-          <div className="grid grid-cols-[minmax(0,1fr)_minmax(0,1fr)_minmax(0,1fr)_44px] items-end gap-1.5">
+          <div className={`grid items-end gap-1.5 ${
+            requiresWeightAndDistance(category)
+              ? "grid-cols-[repeat(4,minmax(0,1fr))_40px]"
+              : "grid-cols-[repeat(3,minmax(0,1fr))_40px]"
+          }`}>
             <label className="min-w-0">
-              <span className="mb-1 block text-[8px] font-bold uppercase tracking-wide text-slate-400">{getUnit(category) === "m" ? "Distance" : getUnit(category) === "kg" ? "Weight" : "Reps"}</span>
+              <span className="mb-1 block text-[8px] font-bold uppercase tracking-wide text-slate-400">{getUnit(category) === "m" ? "Distance · m" : "Reps"}</span>
               <input
                 type="number"
                 inputMode="decimal"
@@ -738,32 +835,39 @@ export default function WorkoutPage() {
                 step={getUnit(category) === "reps" ? "1" : "0.1"}
                 value={amount}
                 onChange={(event) => setAmount(event.target.value)}
-                aria-label={`${getUnit(category)} amount`}
+                aria-label={getUnit(category) === "m" ? "Distance in meters" : "Reps"}
                 className="h-10 w-full rounded-lg border border-slate-200 bg-[#f7f9fb] px-2 text-xs font-semibold text-slate-700 outline-none focus:border-[#9bb4c7]"
               />
             </label>
+            {requiresWeightAndDistance(category) && (
+              <label className="min-w-0">
+                <span className="mb-1 block text-[8px] font-bold uppercase tracking-wide text-slate-400">Weight · kg</span>
+                <input
+                  type="number"
+                  inputMode="decimal"
+                  min="0.1"
+                  step="0.1"
+                  value={weight}
+                  onChange={(event) => setWeight(event.target.value)}
+                  aria-label="Weight in kilograms"
+                  className="h-10 w-full rounded-lg border border-slate-200 bg-[#f7f9fb] px-2 text-xs font-semibold text-slate-700 outline-none focus:border-[#9bb4c7]"
+                />
+              </label>
+            )}
             <label className="min-w-0">
               <span className="mb-1 block text-[8px] font-bold uppercase tracking-wide text-slate-400">Time</span>
-              <input
-                type="text"
-                inputMode="numeric"
+              <TimeInput
+                label="Set time"
                 value={time}
-                onChange={(event) => setTime(event.target.value)}
-                aria-label="Set time in minutes and seconds"
-                className="h-10 w-full rounded-lg border border-slate-200 bg-[#f7f9fb] px-2 text-xs font-semibold tabular-nums text-slate-700 outline-none focus:border-[#9bb4c7]"
-                placeholder="02:40"
+                onChange={setTime}
               />
             </label>
             <label className="min-w-0">
               <span className="mb-1 block text-[8px] font-bold uppercase tracking-wide text-slate-400">Rest</span>
-              <input
-                type="text"
-                inputMode="numeric"
+              <TimeInput
+                label="Rest time"
                 value={restTime}
-                onChange={(event) => setRestTime(event.target.value)}
-                aria-label="Rest time in minutes and seconds"
-                className="h-10 w-full rounded-lg border border-slate-200 bg-[#f7f9fb] px-2 text-xs font-semibold tabular-nums text-slate-700 outline-none focus:border-[#9bb4c7]"
-                placeholder="01:00"
+                onChange={setRestTime}
               />
             </label>
             <button
