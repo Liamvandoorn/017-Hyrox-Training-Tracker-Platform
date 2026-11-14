@@ -18,6 +18,7 @@ export interface WorkoutSet {
   amount: number;
   unit: WorkoutSetUnit;
   timeSeconds: number;
+  restSeconds: number;
   completed: boolean;
 }
 
