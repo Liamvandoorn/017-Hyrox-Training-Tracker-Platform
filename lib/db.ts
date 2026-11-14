@@ -1,23 +1,31 @@
 import { Pool } from "pg";
 import type { WorkoutSet, WorkoutSource } from "@/lib/types";
 
-// Use pooled connection for regular queries (recommended for serverless)
-const pooledConnectionString = process.env.DATABASE_URL;
-// Use unpooled connection for schema operations (if available)
-const unpooledConnectionString = process.env.DATABASE_URL_UNPOOLED;
+let pool: Pool | undefined;
+let schemaPool: Pool | undefined;
 
-if (!pooledConnectionString) {
-  throw new Error("DATABASE_URL is not set");
+function getPool() {
+  if (!pool) {
+    const connectionString = process.env.DATABASE_URL;
+    if (!connectionString) {
+      throw new Error("DATABASE_URL is not set");
+    }
+    pool = new Pool({ connectionString });
+  }
+  return pool;
 }
 
-const pool = new Pool({
-  connectionString: pooledConnectionString,
-});
-
-// Separate pool for schema operations that need direct connections
-const schemaPool = new Pool({
-  connectionString: unpooledConnectionString || pooledConnectionString,
-});
+function getSchemaPool() {
+  if (!schemaPool) {
+    const connectionString =
+      process.env.DATABASE_URL_UNPOOLED || process.env.DATABASE_URL;
+    if (!connectionString) {
+      throw new Error("DATABASE_URL is not set");
+    }
+    schemaPool = new Pool({ connectionString });
+  }
+  return schemaPool;
+}
 
 export async function query(
   text: string,
@@ -25,7 +33,7 @@ export async function query(
 ): Promise<any> {
   const start = Date.now();
   try {
-    const result = await pool.query(text, params);
+    const result = await getPool().query(text, params);
     const duration = Date.now() - start;
     console.log("Executed query", { text, duration, rows: result.rowCount });
     return result;
@@ -115,6 +123,6 @@ export async function initializeDatabase() {
   `;
 
   // Use schema pool for CREATE TABLE operations
-  await schemaPool.query(createTableQuery);
+  await getSchemaPool().query(createTableQuery);
   console.log("Database initialized successfully");
 }

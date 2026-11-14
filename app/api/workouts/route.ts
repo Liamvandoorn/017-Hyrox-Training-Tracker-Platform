@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { addWorkout, getWorkouts } from "@/lib/db";
 import type { WorkoutSet, WorkoutSetUnit, WorkoutSource } from "@/lib/types";
 
+export const dynamic = "force-dynamic";
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
