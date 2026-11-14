@@ -4,19 +4,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import WorkoutStartSheet, { WorkoutFlow } from "@/components/WorkoutStartSheet";
-import { requiresWeightAndDistance } from "@/lib/types";
+import { getWorkoutSetUnit, requiresWeightAndDistance, WORKOUT_CATEGORIES } from "@/lib/types";
 import type { WorkoutSet, WorkoutSetUnit, WorkoutSource } from "@/lib/types";
-
-const categories = [
-  "Running",
-  "SkiErg",
-  "Rowing",
-  "Sled push",
-  "Sled pull",
-  "Burpee broad jumps",
-  "Sandbag lunges",
-  "Wall balls",
-];
 
 const samplePlan = [
   { category: "Running", amount: 500, unit: "m" as const, timeSeconds: 160, restSeconds: 60 },
@@ -31,23 +20,6 @@ function localDateValue() {
   const date = new Date();
   const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
   return localDate.toISOString().slice(0, 10);
-}
-
-function getUnit(category: string): WorkoutSetUnit {
-  if (
-    [
-      "Running",
-      "SkiErg",
-      "Rowing",
-      "Sled push",
-      "Sled pull",
-      "Burpee broad jumps",
-      "Sandbag lunges",
-    ].includes(category)
-  ) {
-    return "m";
-  }
-  return "reps";
 }
 
 function parseTime(value: string) {
@@ -185,7 +157,7 @@ export default function WorkoutPage() {
   const [workoutName, setWorkoutName] = useState("My workout");
   const [date, setDate] = useState(localDateValue);
   const [sets, setSets] = useState<WorkoutSet[]>([]);
-  const [category, setCategory] = useState(categories[0]);
+  const [category, setCategory] = useState<string>(WORKOUT_CATEGORIES[0]);
   const [amount, setAmount] = useState("500");
   const [weight, setWeight] = useState("50");
   const [time, setTime] = useState("02:40");
@@ -273,7 +245,7 @@ export default function WorkoutPage() {
       setError("Enter a weight greater than zero.");
       return;
     }
-    if (getUnit(category) === "reps" && !Number.isInteger(numericAmount)) {
+    if (getWorkoutSetUnit(category) === "reps" && !Number.isInteger(numericAmount)) {
       setError("Repetitions must be a whole number.");
       return;
     }
@@ -296,7 +268,7 @@ export default function WorkoutPage() {
         id: crypto.randomUUID(),
         category,
         amount: numericAmount,
-        unit: getUnit(category),
+        unit: getWorkoutSetUnit(category),
         ...(requiresWeightAndDistance(category) ? { weightKg: numericWeight } : {}),
         timeSeconds,
         restSeconds,
@@ -403,7 +375,7 @@ export default function WorkoutPage() {
 
   const changeCategory = (nextCategory: string) => {
     setCategory(nextCategory);
-    setAmount(getUnit(nextCategory) === "m" ? "500" : "20");
+    setAmount(getWorkoutSetUnit(nextCategory) === "m" ? "500" : "20");
     setWeight("50");
   };
 
@@ -817,7 +789,7 @@ export default function WorkoutPage() {
                 onChange={(event) => changeCategory(event.target.value)}
                 className="w-full min-w-0 appearance-none bg-transparent text-xs font-semibold text-slate-700 outline-none"
               >
-                {categories.map((option) => <option key={option}>{option}</option>)}
+                {WORKOUT_CATEGORIES.map((option) => <option key={option}>{option}</option>)}
               </select>
             </span>
           </label>
@@ -827,15 +799,15 @@ export default function WorkoutPage() {
               : "grid-cols-[repeat(3,minmax(0,1fr))_40px]"
           }`}>
             <label className="min-w-0">
-              <span className="mb-1 block text-[8px] font-bold uppercase tracking-wide text-slate-400">{getUnit(category) === "m" ? "Distance · m" : "Reps"}</span>
+              <span className="mb-1 block text-[8px] font-bold uppercase tracking-wide text-slate-400">{getWorkoutSetUnit(category) === "m" ? "Distance · m" : "Reps"}</span>
               <input
                 type="number"
                 inputMode="decimal"
                 min="0.1"
-                step={getUnit(category) === "reps" ? "1" : "0.1"}
+                step={getWorkoutSetUnit(category) === "reps" ? "1" : "0.1"}
                 value={amount}
                 onChange={(event) => setAmount(event.target.value)}
-                aria-label={getUnit(category) === "m" ? "Distance in meters" : "Reps"}
+                aria-label={getWorkoutSetUnit(category) === "m" ? "Distance in meters" : "Reps"}
                 className="h-10 w-full rounded-lg border border-slate-200 bg-[#f7f9fb] px-2 text-xs font-semibold text-slate-700 outline-none focus:border-[#9bb4c7]"
               />
             </label>

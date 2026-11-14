@@ -12,6 +12,31 @@ export interface TrainingSession {
 export type WorkoutSource = "own" | "plan";
 export type WorkoutSetUnit = "m" | "kg" | "reps";
 
+export const WORKOUT_CATEGORIES = [
+  "Running",
+  "SkiErg",
+  "Rowing",
+  "Sled push",
+  "Sled pull",
+  "Burpee broad jumps",
+  "Sandbag lunges",
+  "Wall balls",
+] as const;
+
+const distanceCategories = new Set<string>([
+  "Running",
+  "SkiErg",
+  "Rowing",
+  "Sled push",
+  "Sled pull",
+  "Burpee broad jumps",
+  "Sandbag lunges",
+]);
+
+export function getWorkoutSetUnit(category: string): WorkoutSetUnit {
+  return distanceCategories.has(category) ? "m" : "reps";
+}
+
 const exercisesWithDistanceAndWeight = new Set([
   "Sled push",
   "Sled pull",

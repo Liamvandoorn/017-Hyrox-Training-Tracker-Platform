@@ -122,7 +122,6 @@ function getWeeklyRunningTrend(workouts: DashboardWorkout[]) {
 
 function getSimulationHistory(workouts: DashboardWorkout[]) {
   return workouts
-    .filter((workout) => /\bsimulation\b/i.test(workout.name))
     .map((workout) => ({
       date: workout.date,
       seconds: workout.sets.reduce(
@@ -239,7 +238,7 @@ export default function Dashboard() {
     ? workoutsError
     : workouts === null
       ? "Loading saved workouts..."
-      : "No HYROX simulation time yet. Log a workout named “Simulation” with timed sets.";
+      : "No completed timed sets yet. Log a workout to build your HYROX time trend.";
   const bestTimeDetail = workoutsError
     ? "Data unavailable"
     : workouts === null
@@ -304,7 +303,7 @@ export default function Dashboard() {
             title="HYROX simulation"
             subtitle={
               bestSimulationSeconds === null
-                ? "Total set time · excludes rest"
+                ? "Total completed set time · excludes rest"
                 : `Best ${formatDuration(bestSimulationSeconds)} · excludes rest`
             }
           >

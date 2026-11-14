@@ -88,9 +88,31 @@ export async function addWorkout(
   return result.rows[0];
 }
 
+export async function updateWorkout(
+  id: number,
+  name: string,
+  date: string,
+  source: WorkoutSource,
+  sets: WorkoutSet[]
+) {
+  const result = await query(
+    `UPDATE workouts
+     SET name = $2, date = $3, source = $4, sets = $5::jsonb
+     WHERE id = $1
+     RETURNING id, name, date::text AS date, source, sets, created_at`,
+    [id, name, date, source, JSON.stringify(sets)]
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function deleteWorkout(id: number) {
+  const result = await query("DELETE FROM workouts WHERE id = $1", [id]);
+  return result.rowCount ?? 0;
+}
+
 export async function getWorkouts() {
   const result = await query(
-    "SELECT id, name, date::text AS date, source, sets, created_at FROM workouts ORDER BY date DESC, created_at DESC LIMIT 50"
+    "SELECT id, name, date::text AS date, source, sets, created_at FROM workouts ORDER BY date DESC, created_at DESC"
   );
   return result.rows;
 }

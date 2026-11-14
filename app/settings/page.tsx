@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
+import WorkoutHistoryManager from "@/components/WorkoutHistoryManager";
 
 export default function SettingsPage() {
   const [passcode, setPasscode] = useState("");
@@ -71,6 +72,8 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+
+        <WorkoutHistoryManager />
 
         {/* App Info Section */}
         <div className="mb-5 rounded-[1.7rem] border border-white/80 bg-white/80 p-5 shadow-sm sm:p-7">
