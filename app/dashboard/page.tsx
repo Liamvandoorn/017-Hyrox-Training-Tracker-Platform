@@ -266,11 +266,11 @@ export default function Dashboard() {
       <div className="mx-auto max-w-[760px] space-y-4 sm:space-y-5">
         <header className="flex items-center justify-between px-1 pb-1">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#66839a]">HYROX · TRAINING LOG</p>
-            <h1 className="mt-1 text-[23px] font-semibold tracking-[-0.04em] text-[#202d37] sm:text-[28px]">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9ab0c4]">HYROX · TRAINING LOG</p>
+            <h1 className="mt-1 text-[23px] font-semibold tracking-[-0.04em] text-[#edf3f8] sm:text-[28px]">
               Welcome back Marta!
             </h1>
-            <p className="mt-0.5 text-xs text-slate-500 sm:text-sm">
+            <p className="mt-0.5 text-xs text-slate-400 sm:text-sm">
               {selectedDate.toLocaleDateString("en", { weekday: "long", month: "long", day: "numeric" })}
             </p>
           </div>

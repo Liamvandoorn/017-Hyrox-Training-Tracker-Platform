@@ -438,11 +438,11 @@ export default function WorkoutPage() {
       <div className="mx-auto max-w-[680px]">
         <header className="mb-5 flex items-start justify-between gap-3 px-1">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#66839a]">HYROX · TRAINING LOG</p>
-            <h1 className="mt-1 text-[25px] font-semibold tracking-[-0.04em] text-[#202d37] sm:text-[28px]">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#9ab0c4]">HYROX · TRAINING LOG</p>
+            <h1 className="mt-1 text-[25px] font-semibold tracking-[-0.04em] text-[#edf3f8] sm:text-[28px]">
               {mode === "finished" ? "Workout complete" : "Log workout"}
             </h1>
-            <p className="mt-1 text-sm text-slate-500">
+            <p className="mt-1 text-sm text-slate-400">
               {mode === "choose" ? "How would you like to train today?" : mode === "finished" ? "Your session has been saved." : "Build your session, one set at a time."}
             </p>
           </div>
