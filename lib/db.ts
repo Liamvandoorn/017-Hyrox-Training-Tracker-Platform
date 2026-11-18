@@ -1,5 +1,5 @@
 import { Pool } from "pg";
-import type { WorkoutSet, WorkoutSource } from "@/lib/types";
+import type { WorkoutPlan, WorkoutSet, WorkoutSource } from "@/lib/types";
 
 let pool: Pool | undefined;
 let schemaPool: Pool | undefined;
@@ -117,6 +117,39 @@ export async function getWorkouts() {
   return result.rows;
 }
 
+export async function addWorkoutPlan(name: string, sets: WorkoutSet[]) {
+  const result = await query(
+    `INSERT INTO workout_plans (name, sets)
+     VALUES ($1, $2::jsonb)
+     RETURNING id, name, sets, created_at, updated_at`,
+    [name, JSON.stringify(sets)]
+  );
+  return result.rows[0];
+}
+
+export async function updateWorkoutPlan(id: number, name: string, sets: WorkoutSet[]) {
+  const result = await query(
+    `UPDATE workout_plans
+     SET name = $2, sets = $3::jsonb, updated_at = NOW()
+     WHERE id = $1
+     RETURNING id, name, sets, created_at, updated_at`,
+    [id, name, JSON.stringify(sets)]
+  );
+  return result.rows[0] ?? null;
+}
+
+export async function deleteWorkoutPlan(id: number) {
+  const result = await query("DELETE FROM workout_plans WHERE id = $1", [id]);
+  return result.rowCount ?? 0;
+}
+
+export async function getWorkoutPlans(): Promise<WorkoutPlan[]> {
+  const result = await query(
+    "SELECT id, name, sets, created_at, updated_at FROM workout_plans ORDER BY updated_at DESC, created_at DESC"
+  );
+  return result.rows;
+}
+
 export async function initializeDatabase() {
   const createTableQuery = `
     CREATE TABLE IF NOT EXISTS training_sessions (
@@ -142,6 +175,17 @@ export async function initializeDatabase() {
     );
 
     CREATE INDEX IF NOT EXISTS idx_workouts_date ON workouts(date DESC);
+
+    CREATE TABLE IF NOT EXISTS workout_plans (
+      id SERIAL PRIMARY KEY,
+      name VARCHAR(120) NOT NULL,
+      sets JSONB NOT NULL CHECK (jsonb_typeof(sets) = 'array'),
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_workout_plans_updated_at
+      ON workout_plans(updated_at DESC);
   `;
 
   // Use schema pool for CREATE TABLE operations

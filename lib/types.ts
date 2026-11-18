@@ -74,3 +74,11 @@ export interface WorkoutRecord {
   sets: WorkoutSet[];
   created_at: string;
 }
+
+export interface WorkoutPlan {
+  id: number;
+  name: string;
+  sets: WorkoutSet[];
+  created_at: string;
+  updated_at: string;
+}

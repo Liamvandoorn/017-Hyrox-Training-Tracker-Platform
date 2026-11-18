@@ -9,7 +9,8 @@ A progressive web app (PWA) built with Next.js for tracking Hyrox training sessi
 - 🔐 **Passcode Protected** - Secure access with customizable passcode
 - 📱 **PWA Ready** - Works on mobile and desktop, installable as an app
 - 📊 **Track Training** - Log exercises, duration, distance, and notes
-- 🏋️ **Workout Builder** - Follow the sample plan or build a session from editable sets
+- 🏋️ **Workout Builder** - Follow saved plans or build a session from editable sets
+- 🗓️ **Workout Plans** - Create, edit, and reuse workout templates from Settings
 - 🗄️ **Neon Database** - PostgreSQL database for persistent storage
 - 📈 **Workout Recaps** - Complete sets and review session volume and set time
 - 🎨 **Responsive UI** - Mobile-first dashboard and workout logging
@@ -72,7 +73,7 @@ Open [http://localhost:3000](http://localhost:3000) and enter the passcode to ac
 2. **Log Workout** - Choose Follow plan or Log own workout from the slide-up menu above the navigation
 3. **Build sets** - Use the docked composer to enter distance, weight, or reps; sled pushes/pulls, sandbag lunges, and farmer carries take both distance and weight (farmer carry weight is per kettlebell), while wall balls include a weight field. Enter time and rest with numeric minute/second fields separated by a fixed colon.
 4. **Complete or abort** - Tap each numbered circle as you finish a set; finish to save a recap or abort after confirming
-5. **Plan setup** - Planned workouts can be configured in Settings in a future update; Follow plan currently uses a clearly marked sample
+5. **Build a plan** - Create and edit reusable workout plans in Settings. Choose Follow plan to import a saved plan into a new workout.
 
 ## HYROX Best-Time Eligibility
 
@@ -141,9 +142,19 @@ CREATE TABLE workouts (
 );
 
 CREATE INDEX idx_workouts_date ON workouts(date DESC);
+
+CREATE TABLE workout_plans (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  sets JSONB NOT NULL CHECK (jsonb_typeof(sets) = 'array'),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_workout_plans_updated_at ON workout_plans(updated_at DESC);
 ```
 
-Completed workouts are saved through `POST /api/workouts`; run `npm run init-db` after updating to create the workouts table in Neon.
+Completed workouts are saved through `POST /api/workouts`, and reusable plans through `/api/plans`. Run `npm run init-db` to create the workout and plan tables in Neon.
 
 ## File Structure
 

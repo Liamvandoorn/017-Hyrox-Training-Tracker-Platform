@@ -41,6 +41,17 @@ async function initializeDatabase() {
       );
 
       CREATE INDEX IF NOT EXISTS idx_workouts_date ON workouts(date DESC);
+
+      CREATE TABLE IF NOT EXISTS workout_plans (
+        id SERIAL PRIMARY KEY,
+        name VARCHAR(120) NOT NULL,
+        sets JSONB NOT NULL CHECK (jsonb_typeof(sets) = 'array'),
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_workout_plans_updated_at
+        ON workout_plans(updated_at DESC);
     `;
 
     await pool.query(createTableQuery);

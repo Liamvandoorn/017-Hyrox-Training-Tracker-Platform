@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import WorkoutHistoryManager from "@/components/WorkoutHistoryManager";
+import WorkoutPlanBuilder from "@/components/WorkoutPlanBuilder";
 
 export default function SettingsPage() {
   const [passcode, setPasscode] = useState("");
@@ -72,6 +73,8 @@ export default function SettingsPage() {
             </div>
           </div>
         </div>
+
+        <WorkoutPlanBuilder />
 
         <WorkoutHistoryManager />
 
