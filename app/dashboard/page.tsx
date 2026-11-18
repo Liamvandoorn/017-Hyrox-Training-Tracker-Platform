@@ -38,6 +38,17 @@ const bestTimeMinimums: Partial<
   farmerCarries: { amount: 200, unit: "m", weightKg: 16 },
   wallBalls: { amount: 100, unit: "reps", weightKg: 4 },
 };
+const requiredBestTimeKeys: BestTimeKey[] = [
+  "running",
+  "skiing",
+  "rowing",
+  "sledPull",
+  "sledPush",
+  "burpeeBroad",
+  "sandbagLunges",
+  "farmerCarries",
+  "wallBalls",
+];
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -150,7 +161,10 @@ function getSimulationHistory(workouts: WorkoutRecord[]) {
     .sort((left, right) => left.date.localeCompare(right.date));
 }
 
-function getBestExerciseTimes(workouts: WorkoutRecord[]): BestTimes {
+function getBestExerciseTimes(workouts: WorkoutRecord[]): {
+  times: BestTimes;
+  seconds: Partial<Record<BestTimeKey, number>>;
+} {
   const fastest = new Map<BestTimeKey, { seconds: number; measurement: string }>();
 
   for (const workout of workouts) {
@@ -191,10 +205,12 @@ function getBestExerciseTimes(workouts: WorkoutRecord[]): BestTimes {
   }
 
   const result: BestTimes = {};
+  const seconds: Partial<Record<BestTimeKey, number>> = {};
   for (const [key, best] of fastest) {
     result[key] = `${formatDuration(best.seconds)} · ${best.measurement}`;
+    seconds[key] = best.seconds;
   }
-  return result;
+  return { times: result, seconds };
 }
 
 function formatDuration(seconds: number): string {
@@ -253,10 +269,20 @@ export default function Dashboard() {
     () => getSimulationHistory(workouts ?? []),
     [workouts]
   );
-  const bestExerciseTimes = useMemo(
+  const bestExerciseResults = useMemo(
     () => getBestExerciseTimes(workouts ?? []),
     [workouts]
   );
+  const bestHyroxSeconds = requiredBestTimeKeys.every(
+    (key) => bestExerciseResults.seconds[key] !== undefined
+  )
+    ? requiredBestTimeKeys.reduce(
+        (total, key) =>
+          total +
+          (bestExerciseResults.seconds[key] ?? 0) * (key === "running" ? 8 : 1),
+        0
+      )
+    : null;
   const bestSimulationSeconds = simulationHistory.length
     ? Math.min(...simulationHistory.map((workout) => workout.seconds))
     : null;
@@ -281,8 +307,8 @@ export default function Dashboard() {
     ? "Data unavailable"
     : workouts === null
       ? "Loading..."
-      : bestSimulationSeconds === null
-        ? "No timed workouts yet"
+      : bestHyroxSeconds === null
+        ? "Complete all benchmarks"
         : "Personal best";
   const workoutCounts = useMemo(() => {
     const counts: Record<string, number> = {};
@@ -330,11 +356,11 @@ export default function Dashboard() {
 
         <section className="grid grid-cols-[minmax(0,1.45fr)_minmax(102px,0.82fr)] gap-3 rounded-[1.7rem] border border-white/85 bg-white/85 p-3.5 shadow-[0_14px_38px_rgba(47,68,85,0.08)] sm:gap-5 sm:rounded-[2rem] sm:p-5">
           <BestTimesBox
-            times={bestExerciseTimes}
+            times={bestExerciseResults.times}
             status={workoutsError ?? (workouts === null ? "Loading workout data..." : undefined)}
           />
           <TotalTimeBox
-            totalTime={bestSimulationSeconds === null ? null : formatDuration(bestSimulationSeconds)}
+            totalTime={bestHyroxSeconds === null ? null : formatDuration(bestHyroxSeconds)}
             lastUpdated={bestTimeDetail}
           />
         </section>

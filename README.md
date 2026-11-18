@@ -76,7 +76,7 @@ Open [http://localhost:3000](http://localhost:3000) and enter the passcode to ac
 
 ## HYROX Best-Time Eligibility
 
-Best times use completed sets only. Running times are normalized to a 1,000 m equivalent using each set's average pace, and the fastest equivalent is shown. Other stations count only at or above the following distance, rep, and load minimums:
+Best times use completed sets only. Running times are normalized to a 1,000 m equivalent using each set's average pace, and the fastest equivalent is shown. The Best HYROX time is calculated as eight times the best running 1,000 m pace plus the best eligible time for each of the eight stations. It is shown after all nine benchmarks have qualifying results. Other stations count only at or above the following distance, rep, and load minimums:
 
 - SkiErg and rowing: 1,000 m
 - Sled pull: 12.5 m at 78 kg or more
