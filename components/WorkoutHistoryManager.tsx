@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import {
   getWorkoutSetUnit,
+  requiresWeight,
   requiresWeightAndDistance,
   WORKOUT_CATEGORIES,
 } from "@/lib/types";
@@ -136,7 +137,9 @@ function parseDraft(
     if (
       (weightKg !== undefined &&
         (!Number.isFinite(weightKg) || weightKg <= 0 || weightKg > 100000)) ||
-      (requiresWeightAndDistance(set.category) && set.unit === "m" && weightKg === undefined)
+      (requiresWeight(set.category) && weightKg === undefined) ||
+      (requiresWeightAndDistance(set.category) &&
+        set.unit !== "m")
     ) {
       return { error: `Enter a valid weight for set ${index + 1}.` };
     }
@@ -421,7 +424,9 @@ export default function WorkoutHistoryManager() {
                       <span className="font-medium text-slate-700">{index + 1}. {set.category}</span>
                       <span className="text-right text-slate-500">
                         {set.amount} {set.unit}
-                        {set.weightKg !== undefined ? ` · ${set.weightKg} kg` : ""}
+                        {set.weightKg !== undefined
+                          ? ` · ${set.weightKg} kg${set.category === "Farmer carries" ? " / kettlebell" : ""}`
+                          : ""}
                         {" · "}
                         {formatTime(set.timeSeconds)} time
                         {" · "}
@@ -478,8 +483,18 @@ export default function WorkoutHistoryManager() {
                               onChange={(event) => updateDraftSet(set.id, {
                                 category: event.target.value,
                                 unit: getWorkoutSetUnit(event.target.value),
-                                amount: getWorkoutSetUnit(event.target.value) === "m" ? "500" : "20",
-                                weightKg: requiresWeightAndDistance(event.target.value) ? set.weightKg || "50" : "",
+                                amount: event.target.value === "Farmer carries"
+                                  ? "200"
+                                  : event.target.value === "Wall balls"
+                                    ? "100"
+                                  : getWorkoutSetUnit(event.target.value) === "m" ? "500" : "20",
+                                weightKg: requiresWeight(event.target.value)
+                                  ? event.target.value === "Farmer carries"
+                                    ? "16"
+                                    : event.target.value === "Wall balls"
+                                      ? "4"
+                                      : set.weightKg || "50"
+                                  : "",
                               })}
                               className="h-10 w-full rounded-lg border border-slate-200 bg-white px-2 text-xs text-slate-800 outline-none focus:border-[#9bb4c7]"
                             >
@@ -527,7 +542,11 @@ export default function WorkoutHistoryManager() {
                             onChange={(restTime) => updateDraftSet(set.id, { restTime })}
                           />
                           <label className="block">
-                            <span className="mb-1 block text-[10px] font-medium text-slate-500">Weight · kg</span>
+                            <span className="mb-1 block text-[10px] font-medium text-slate-500">
+                              {set.category === "Farmer carries"
+                                ? "Weight · kg / kettlebell"
+                                : "Weight · kg"}
+                            </span>
                             <input
                               type="number"
                               min="0"

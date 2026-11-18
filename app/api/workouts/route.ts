@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { addWorkout, deleteWorkout, getWorkouts, updateWorkout } from "@/lib/db";
-import { requiresWeightAndDistance } from "@/lib/types";
+import { requiresWeight, requiresWeightAndDistance } from "@/lib/types";
 import type { WorkoutSet, WorkoutSetUnit, WorkoutSource } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -40,9 +40,8 @@ function isWorkoutSet(value: unknown): value is WorkoutSet {
         value.weightKg > 0 &&
         value.weightKg <= 100000)) &&
     isWorkoutSetUnit(value.unit) &&
-    (!requiresWeightAndDistance(value.category) ||
-      value.unit !== "m" ||
-      typeof value.weightKg === "number") &&
+    (!requiresWeight(value.category) || typeof value.weightKg === "number") &&
+    (!requiresWeightAndDistance(value.category) || value.unit === "m") &&
     (value.unit !== "reps" || Number.isInteger(value.amount)) &&
     typeof value.timeSeconds === "number" &&
     Number.isInteger(value.timeSeconds) &&

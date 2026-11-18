@@ -23,7 +23,20 @@ const bestTimeKeys: Record<string, BestTimeKey> = {
   "sled push": "sledPush",
   "burpee broad jumps": "burpeeBroad",
   "sandbag lunges": "sandbagLunges",
+  "farmer carries": "farmerCarries",
   "wall balls": "wallBalls",
+};
+const bestTimeMinimums: Partial<
+  Record<BestTimeKey, { amount: number; unit: "m" | "reps"; weightKg?: number }>
+> = {
+  skiing: { amount: 1000, unit: "m" },
+  rowing: { amount: 1000, unit: "m" },
+  sledPull: { amount: 12.5, unit: "m", weightKg: 78 },
+  sledPush: { amount: 12.5, unit: "m", weightKg: 102 },
+  burpeeBroad: { amount: 80, unit: "m" },
+  sandbagLunges: { amount: 100, unit: "m", weightKg: 10 },
+  farmerCarries: { amount: 200, unit: "m", weightKg: 16 },
+  wallBalls: { amount: 100, unit: "reps", weightKg: 4 },
 };
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -145,14 +158,34 @@ function getBestExerciseTimes(workouts: WorkoutRecord[]): BestTimes {
       const key = bestTimeKeys[set.category.trim().toLowerCase()];
       if (!key || !set.completed || set.timeSeconds <= 0) continue;
 
+      let seconds = set.timeSeconds;
+      if (key === "running") {
+        if (set.unit !== "m") continue;
+        seconds = Math.round((set.timeSeconds / set.amount) * 1000);
+      } else {
+        const minimum = bestTimeMinimums[key];
+        if (
+          !minimum ||
+          set.unit !== minimum.unit ||
+          set.amount < minimum.amount ||
+          (minimum.weightKg !== undefined &&
+            (set.weightKg === undefined || set.weightKg < minimum.weightKg))
+        ) {
+          continue;
+        }
+      }
+
       const currentBest = fastest.get(key);
-      if (currentBest && currentBest.seconds <= set.timeSeconds) continue;
+      if (currentBest && currentBest.seconds <= seconds) continue;
 
       const amount = Number.isInteger(set.amount) ? String(set.amount) : set.amount.toFixed(1);
-      const weight = set.weightKg ? ` · ${set.weightKg} kg` : "";
+      const measurement =
+        key === "running"
+          ? "1,000 m pace"
+          : `${amount} ${set.unit}${set.weightKg ? ` · ${set.weightKg} kg${key === "farmerCarries" ? " / kettlebell" : ""}` : ""}`;
       fastest.set(key, {
-        seconds: set.timeSeconds,
-        measurement: `${amount} ${set.unit}${weight}`,
+        seconds,
+        measurement,
       });
     }
   }

@@ -59,6 +59,7 @@ Open [http://localhost:3000](http://localhost:3000) and enter the passcode to ac
 - Rowing
 - Burpee Broad Jumps
 - Sandbag Lunges
+- Farmer Carries
 - Rope Climb
 - Monkey Bars
 - SkiErg
@@ -69,9 +70,21 @@ Open [http://localhost:3000](http://localhost:3000) and enter the passcode to ac
 
 1. **Unlock** - Enter the passcode to access the app
 2. **Log Workout** - Choose Follow plan or Log own workout from the slide-up menu above the navigation
-3. **Build sets** - Use the docked composer to enter distance, weight, or reps; sled pushes/pulls and sandbag lunges take both distance and weight, while burpee broad jumps use distance. Enter time and rest with numeric minute/second fields separated by a fixed colon.
+3. **Build sets** - Use the docked composer to enter distance, weight, or reps; sled pushes/pulls, sandbag lunges, and farmer carries take both distance and weight (farmer carry weight is per kettlebell), while wall balls include a weight field. Enter time and rest with numeric minute/second fields separated by a fixed colon.
 4. **Complete or abort** - Tap each numbered circle as you finish a set; finish to save a recap or abort after confirming
 5. **Plan setup** - Planned workouts can be configured in Settings in a future update; Follow plan currently uses a clearly marked sample
+
+## HYROX Best-Time Eligibility
+
+Best times use completed sets only. Running times are normalized to a 1,000 m equivalent using each set's average pace, and the fastest equivalent is shown. Other stations count only at or above the following distance, rep, and load minimums:
+
+- SkiErg and rowing: 1,000 m
+- Sled pull: 12.5 m at 78 kg or more
+- Sled push: 12.5 m at 102 kg or more
+- Burpee broad jumps: 80 m
+- Sandbag lunges: 100 m at 10 kg or more
+- Farmer carries: 200 m with 16 kg or heavier per kettlebell
+- Wall balls: 100 reps at 4 kg or more
 
 ## Deployment
 

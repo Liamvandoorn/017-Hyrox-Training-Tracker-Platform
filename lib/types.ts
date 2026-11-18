@@ -20,6 +20,7 @@ export const WORKOUT_CATEGORIES = [
   "Sled pull",
   "Burpee broad jumps",
   "Sandbag lunges",
+  "Farmer carries",
   "Wall balls",
 ] as const;
 
@@ -31,6 +32,7 @@ const distanceCategories = new Set<string>([
   "Sled pull",
   "Burpee broad jumps",
   "Sandbag lunges",
+  "Farmer carries",
 ]);
 
 export function getWorkoutSetUnit(category: string): WorkoutSetUnit {
@@ -41,7 +43,13 @@ const exercisesWithDistanceAndWeight = new Set([
   "Sled push",
   "Sled pull",
   "Sandbag lunges",
+  "Farmer carries",
 ]);
+const exercisesWithWeight = new Set([...exercisesWithDistanceAndWeight, "Wall balls"]);
+
+export function requiresWeight(category: string): boolean {
+  return exercisesWithWeight.has(category);
+}
 
 export function requiresWeightAndDistance(category: string): boolean {
   return exercisesWithDistanceAndWeight.has(category);

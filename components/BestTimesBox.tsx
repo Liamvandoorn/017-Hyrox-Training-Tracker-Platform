@@ -8,6 +8,7 @@ export type BestTimeKey =
   | "sledPush"
   | "burpeeBroad"
   | "sandbagLunges"
+  | "farmerCarries"
   | "wallBalls";
 
 export type BestTimes = Partial<Record<BestTimeKey, string>>;
@@ -26,6 +27,7 @@ export default function BestTimesBox({ times, status }: BestTimesBoxProps) {
     { label: "Sled push", value: times?.sledPush },
     { label: "Burpee broad jumps", value: times?.burpeeBroad },
     { label: "Sandbag lunges", value: times?.sandbagLunges },
+    { label: "Farmer carries", value: times?.farmerCarries },
     { label: "Wall balls", value: times?.wallBalls },
   ];
 

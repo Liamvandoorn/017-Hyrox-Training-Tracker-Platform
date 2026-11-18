@@ -4,7 +4,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Navbar from "@/components/Navbar";
 import WorkoutStartSheet, { WorkoutFlow } from "@/components/WorkoutStartSheet";
-import { getWorkoutSetUnit, requiresWeightAndDistance, WORKOUT_CATEGORIES } from "@/lib/types";
+import {
+  getWorkoutSetUnit,
+  requiresWeight,
+  WORKOUT_CATEGORIES,
+} from "@/lib/types";
 import type { WorkoutSet, WorkoutSetUnit, WorkoutSource } from "@/lib/types";
 
 const samplePlan = [
@@ -186,7 +190,9 @@ export default function WorkoutPage() {
     () =>
       sets.reduce(
         (total, set) =>
-          total + (set.weightKg ?? (set.unit === "kg" ? set.amount : 0)),
+          total +
+          (set.weightKg ?? (set.unit === "kg" ? set.amount : 0)) *
+            (set.category === "Farmer carries" ? 2 : 1),
         0
       ),
     [sets]
@@ -239,7 +245,7 @@ export default function WorkoutPage() {
       return;
     }
     if (
-      requiresWeightAndDistance(category) &&
+      requiresWeight(category) &&
       (!Number.isFinite(numericWeight) || numericWeight <= 0)
     ) {
       setError("Enter a weight greater than zero.");
@@ -269,7 +275,7 @@ export default function WorkoutPage() {
         category,
         amount: numericAmount,
         unit: getWorkoutSetUnit(category),
-        ...(requiresWeightAndDistance(category) ? { weightKg: numericWeight } : {}),
+        ...(requiresWeight(category) ? { weightKg: numericWeight } : {}),
         timeSeconds,
         restSeconds,
         completed: false,
@@ -375,8 +381,22 @@ export default function WorkoutPage() {
 
   const changeCategory = (nextCategory: string) => {
     setCategory(nextCategory);
-    setAmount(getWorkoutSetUnit(nextCategory) === "m" ? "500" : "20");
-    setWeight("50");
+    setAmount(
+      nextCategory === "Farmer carries"
+        ? "200"
+        : nextCategory === "Wall balls"
+          ? "100"
+        : getWorkoutSetUnit(nextCategory) === "m"
+          ? "500"
+          : "20"
+    );
+    setWeight(
+      nextCategory === "Farmer carries"
+        ? "16"
+        : nextCategory === "Wall balls"
+          ? "4"
+          : "50"
+    );
   };
 
   const groupedSets = sets.reduce<Record<string, WorkoutSet[]>>((groups, set) => {
@@ -586,9 +606,13 @@ export default function WorkoutPage() {
                               />
                               {set.weightKg !== undefined && (
                                 <EditableValue
-                                  label={`set ${index + 1} weight`}
+                                  label={
+                                    set.category === "Farmer carries"
+                                      ? `set ${index + 1} weight per kettlebell`
+                                      : `set ${index + 1} weight`
+                                  }
                                   value={String(set.weightKg)}
-                                  suffix="kg"
+                                  suffix={set.category === "Farmer carries" ? "kg / bell" : "kg"}
                                   inputMode="decimal"
                                   onSave={(value) => updateSetWeight(set, value)}
                                 />
@@ -794,7 +818,7 @@ export default function WorkoutPage() {
             </span>
           </label>
           <div className={`grid items-end gap-1.5 ${
-            requiresWeightAndDistance(category)
+            requiresWeight(category)
               ? "grid-cols-[repeat(4,minmax(0,1fr))_40px]"
               : "grid-cols-[repeat(3,minmax(0,1fr))_40px]"
           }`}>
@@ -811,9 +835,13 @@ export default function WorkoutPage() {
                 className="h-10 w-full rounded-lg border border-slate-200 bg-[#f7f9fb] px-2 text-xs font-semibold text-slate-700 outline-none focus:border-[#9bb4c7]"
               />
             </label>
-            {requiresWeightAndDistance(category) && (
+            {requiresWeight(category) && (
               <label className="min-w-0">
-                <span className="mb-1 block text-[8px] font-bold uppercase tracking-wide text-slate-400">Weight · kg</span>
+                <span className="mb-1 block text-[8px] font-bold uppercase tracking-wide text-slate-400">
+                  {category === "Farmer carries"
+                    ? "Weight · kg / kettlebell"
+                    : "Weight · kg"}
+                </span>
                 <input
                   type="number"
                   inputMode="decimal"
@@ -821,7 +849,11 @@ export default function WorkoutPage() {
                   step="0.1"
                   value={weight}
                   onChange={(event) => setWeight(event.target.value)}
-                  aria-label="Weight in kilograms"
+                  aria-label={
+                    category === "Farmer carries"
+                      ? "Weight in kilograms per kettlebell"
+                      : "Weight in kilograms"
+                  }
                   className="h-10 w-full rounded-lg border border-slate-200 bg-[#f7f9fb] px-2 text-xs font-semibold text-slate-700 outline-none focus:border-[#9bb4c7]"
                 />
               </label>
