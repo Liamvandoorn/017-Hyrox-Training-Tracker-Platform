@@ -139,6 +139,7 @@ function EditableValue({
     return (
       <input
         autoFocus
+        onFocus={(event) => event.currentTarget.select()}
         aria-label={label}
         inputMode={inputMode}
         value={draft}
@@ -164,9 +165,12 @@ function EditableValue({
         setDraft(value);
         setEditing(true);
       }}
-      className="rounded-md px-1.5 py-1 text-sm font-semibold tabular-nums text-slate-700 transition hover:bg-slate-100 hover:text-[#426987]"
+      className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-1.5 py-1 text-sm font-semibold tabular-nums text-slate-700 transition hover:border-[#9bb4c7] hover:bg-slate-100 hover:text-[#426987]"
     >
       {value}{suffix ? <span className="ml-1 text-[10px] font-medium text-slate-400">{suffix}</span> : null}
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3 shrink-0 text-slate-400" aria-hidden="true">
+        <path d="m15 5 4 4M4 20l4-.8L19 8a2.1 2.1 0 0 0-3-3L5 16l-1 4Z" />
+      </svg>
     </button>
   );
 }
@@ -634,6 +638,11 @@ export default function WorkoutPage() {
                 <h2 className="text-base font-semibold text-slate-800">Added sets</h2>
                 <span className="rounded-full bg-[#edf3f7] px-2.5 py-1 text-[10px] font-semibold text-slate-500">{sets.length} {sets.length === 1 ? "set" : "sets"}</span>
               </div>
+              {sets.length > 0 && (
+                <p className="mb-3 text-xs text-slate-500">
+                  Tap a set value to edit it{source === "plan" ? "; your saved plan stays unchanged" : ""}.
+                </p>
+              )}
               {sets.length === 0 ? (
                 <div className="rounded-xl border border-dashed border-slate-200 bg-[#f9fbfc] px-4 py-6 text-center text-xs text-slate-400">
                   No sets yet. Add your first set below.
