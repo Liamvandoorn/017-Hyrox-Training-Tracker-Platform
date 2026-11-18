@@ -67,22 +67,32 @@ interface TimeInputProps {
   label: string;
   value: string;
   onChange: (value: string) => void;
+  autoFocus?: boolean;
+  onBlur?: React.FocusEventHandler<HTMLDivElement>;
+  onKeyDown?: React.KeyboardEventHandler<HTMLDivElement>;
+  className?: string;
 }
 
-function TimeInput({ label, value, onChange }: TimeInputProps) {
+function TimeInput({ label, value, onChange, autoFocus, onBlur, onKeyDown, className }: TimeInputProps) {
   const [minutes = "", seconds = ""] = value.split(":");
 
   return (
     <div
       role="group"
       aria-label={label}
-      className="flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-[#f7f9fb] px-1 focus-within:border-[#9bb4c7]"
+      onBlur={onBlur}
+      onKeyDown={onKeyDown}
+      className={className ?? "flex h-10 items-center justify-center rounded-lg border border-slate-200 bg-[#f7f9fb] px-1 focus-within:border-[#9bb4c7]"}
     >
       <input
         type="text"
         inputMode="numeric"
         pattern="[0-9]*"
         maxLength={3}
+        autoFocus={autoFocus}
+        onFocus={(event) => {
+          if (autoFocus) event.currentTarget.select();
+        }}
         value={minutes}
         onChange={(event) =>
           onChange(`${event.target.value.replace(/\D/g, "").slice(0, 3)}:${seconds}`)
@@ -118,6 +128,7 @@ interface EditableValueProps {
   label: string;
   fieldLabel: string;
   inputMode?: "decimal" | "text";
+  isTime?: boolean;
   onSave: (value: string) => void;
 }
 
@@ -127,6 +138,7 @@ function EditableValue({
   label,
   fieldLabel,
   inputMode = "text",
+  isTime = false,
   onSave,
 }: EditableValueProps) {
   const [editing, setEditing] = useState(false);
@@ -140,7 +152,28 @@ function EditableValue({
   return (
     <div className="flex min-w-0 flex-col items-start gap-1">
       <span className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">{fieldLabel}</span>
-      {editing ? (
+      {editing && isTime ? (
+        <TimeInput
+          label={label}
+          value={draft}
+          onChange={setDraft}
+          autoFocus
+          onBlur={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) save();
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.preventDefault();
+              save();
+            } else if (event.key === "Escape") {
+              event.preventDefault();
+              setDraft(value);
+              setEditing(false);
+            }
+          }}
+          className="flex h-8 w-[86px] items-center justify-center rounded-lg border border-[#9bb4c7] bg-white px-1 focus-within:ring-2 focus-within:ring-[#dce8f0]"
+        />
+      ) : editing ? (
         <input
           autoFocus
           onFocus={(event) => event.currentTarget.select()}
@@ -701,12 +734,14 @@ export default function WorkoutPage() {
                               <EditableValue
                                 label={`set ${index + 1} time`}
                                 fieldLabel="Time"
+                                isTime
                                 value={formatTime(set.timeSeconds)}
                                 onSave={(value) => updateSetTime(set, value)}
                               />
                               <EditableValue
                                 label={`set ${index + 1} rest time`}
                                 fieldLabel="Rest"
+                                isTime
                                 value={formatTime(set.restSeconds)}
                                 onSave={(value) => updateSetRest(set, value)}
                               />
