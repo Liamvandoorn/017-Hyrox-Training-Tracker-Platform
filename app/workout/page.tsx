@@ -116,6 +116,7 @@ interface EditableValueProps {
   value: string;
   suffix?: string;
   label: string;
+  fieldLabel: string;
   inputMode?: "decimal" | "text";
   onSave: (value: string) => void;
 }
@@ -124,6 +125,7 @@ function EditableValue({
   value,
   suffix,
   label,
+  fieldLabel,
   inputMode = "text",
   onSave,
 }: EditableValueProps) {
@@ -135,43 +137,44 @@ function EditableValue({
     onSave(draft.trim());
   };
 
-  if (editing) {
-    return (
-      <input
-        autoFocus
-        onFocus={(event) => event.currentTarget.select()}
-        aria-label={label}
-        inputMode={inputMode}
-        value={draft}
-        onChange={(event) => setDraft(event.target.value)}
-        onBlur={save}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") event.currentTarget.blur();
-          if (event.key === "Escape") {
-            setDraft(value);
-            setEditing(false);
-          }
-        }}
-        className="w-[70px] rounded-lg border border-[#9bb4c7] bg-white px-2 py-1 text-right text-sm font-semibold text-slate-800 outline-none focus:ring-2 focus:ring-[#dce8f0]"
-      />
-    );
-  }
-
   return (
-    <button
-      type="button"
-      aria-label={`Edit ${label}`}
-      onClick={() => {
-        setDraft(value);
-        setEditing(true);
-      }}
-      className="inline-flex items-center gap-1 rounded-md border border-slate-200 bg-slate-50 px-1.5 py-1 text-sm font-semibold tabular-nums text-slate-700 transition hover:border-[#9bb4c7] hover:bg-slate-100 hover:text-[#426987]"
-    >
-      {value}{suffix ? <span className="ml-1 text-[10px] font-medium text-slate-400">{suffix}</span> : null}
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3 shrink-0 text-slate-400" aria-hidden="true">
-        <path d="m15 5 4 4M4 20l4-.8L19 8a2.1 2.1 0 0 0-3-3L5 16l-1 4Z" />
-      </svg>
-    </button>
+    <div className="flex min-w-0 flex-col items-start gap-1">
+      <span className="text-[9px] font-semibold uppercase tracking-wide text-slate-400">{fieldLabel}</span>
+      {editing ? (
+        <input
+          autoFocus
+          onFocus={(event) => event.currentTarget.select()}
+          aria-label={label}
+          inputMode={inputMode}
+          value={draft}
+          onChange={(event) => setDraft(event.target.value)}
+          onBlur={save}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") event.currentTarget.blur();
+            if (event.key === "Escape") {
+              setDraft(value);
+              setEditing(false);
+            }
+          }}
+          className="h-8 w-[70px] rounded-lg border border-[#9bb4c7] bg-white px-2 py-1 text-left text-sm font-semibold tabular-nums text-slate-800 outline-none focus:ring-2 focus:ring-[#dce8f0]"
+        />
+      ) : (
+        <button
+          type="button"
+          aria-label={`Edit ${label}`}
+          onClick={() => {
+            setDraft(value);
+            setEditing(true);
+          }}
+          className="inline-flex min-h-8 items-center justify-start gap-1 rounded-md border border-slate-200 bg-slate-50 px-1.5 py-1 text-left text-sm font-semibold tabular-nums text-slate-700 transition hover:border-[#9bb4c7] hover:bg-slate-100 hover:text-[#426987]"
+        >
+          {value}{suffix ? <span className="ml-1 text-[10px] font-medium text-slate-400">{suffix}</span> : null}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3 shrink-0 text-slate-400" aria-hidden="true">
+            <path d="m15 5 4 4M4 20l4-.8L19 8a2.1 2.1 0 0 0-3-3L5 16l-1 4Z" />
+          </svg>
+        </button>
+      )}
+    </div>
   );
 }
 
@@ -672,9 +675,10 @@ export default function WorkoutPage() {
                             <span className="min-w-0">
                               <span className={`block text-[9px] ${set.completed ? "text-emerald-700" : "text-slate-400"}`}>{set.completed ? "Completed" : `Set ${index + 1}`}</span>
                             </span>
-                            <div className="flex min-w-0 flex-wrap items-center gap-1">
+                            <div className="flex min-w-0 flex-wrap items-start justify-start gap-x-2 gap-y-2">
                               <EditableValue
                                 label={`set ${index + 1} ${set.unit}`}
+                                fieldLabel={set.unit === "m" ? "Distance" : set.unit === "reps" ? "Reps" : "Weight"}
                                 value={String(set.amount)}
                                 suffix={set.unit}
                                 inputMode="decimal"
@@ -687,6 +691,7 @@ export default function WorkoutPage() {
                                       ? `set ${index + 1} weight per kettlebell`
                                       : `set ${index + 1} weight`
                                   }
+                                  fieldLabel={set.category === "Farmer carries" ? "Weight / bell" : "Weight"}
                                   value={String(set.weightKg)}
                                   suffix={set.category === "Farmer carries" ? "kg / bell" : "kg"}
                                   inputMode="decimal"
@@ -695,11 +700,13 @@ export default function WorkoutPage() {
                               )}
                               <EditableValue
                                 label={`set ${index + 1} time`}
+                                fieldLabel="Time"
                                 value={formatTime(set.timeSeconds)}
                                 onSave={(value) => updateSetTime(set, value)}
                               />
                               <EditableValue
                                 label={`set ${index + 1} rest time`}
+                                fieldLabel="Rest"
                                 value={formatTime(set.restSeconds)}
                                 onSave={(value) => updateSetRest(set, value)}
                               />
