@@ -27,7 +27,7 @@ export default function Home() {
     return (
       <div className="min-h-screen bg-transparent flex items-center justify-center">
         <div className="animate-pulse">
-          <div className="text-offwhite text-2xl font-bold">Loading...</div>
+          <div className="text-white text-2xl font-bold">Loading...</div>
         </div>
       </div>
     );

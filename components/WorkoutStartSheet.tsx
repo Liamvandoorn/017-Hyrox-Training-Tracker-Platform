@@ -23,19 +23,19 @@ export default function WorkoutStartSheet({
         role="dialog"
         aria-modal="true"
         aria-labelledby="workout-start-title"
-        className="workout-sheet absolute left-1/2 w-[calc(100%-24px)] max-w-[420px] -translate-x-1/2 rounded-[1.7rem] border border-white/80 bg-white/95 p-4 shadow-[0_20px_60px_rgba(27,42,54,0.22)] backdrop-blur-xl sm:p-5"
+        className="workout-sheet absolute left-1/2 w-[calc(100%-24px)] max-w-[420px] -translate-x-1/2 rounded-[1.7rem] border border-white/10 bg-[#201d1c] p-4 shadow-[0_20px_60px_rgba(27,42,54,0.22)] backdrop-blur-xl sm:p-5"
         style={{ bottom: "calc(max(12px, env(safe-area-inset-bottom)) + 88px)" }}
       >
         <div className="mb-3 flex items-start justify-between px-1">
           <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#66839a]">TODAY&apos;S SESSION</p>
-            <h2 id="workout-start-title" className="mt-1 text-base font-semibold text-slate-800">How would you like to train?</h2>
+            <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#f6a36f]">TODAY&apos;S SESSION</p>
+            <h2 id="workout-start-title" className="mt-1 text-base font-semibold text-[#f6efea]">How would you like to train?</h2>
           </div>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200"
+            className="flex h-8 w-8 items-center justify-center rounded-full bg-[#302b28] text-[#b8a9a0] hover:bg-[#403630]"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" className="h-4 w-4" aria-hidden="true">
               <path d="m6 6 12 12M18 6 6 18" />
@@ -46,29 +46,29 @@ export default function WorkoutStartSheet({
           <button
             type="button"
             onClick={() => onSelect("plan")}
-            className="rounded-[1.2rem] bg-[#edf3f7] p-3.5 text-left transition hover:bg-[#e3edf4]"
+            className="rounded-[1.2rem] bg-[#342a25] p-3.5 text-left transition hover:bg-[#45342b]"
           >
-            <span className="mb-2 flex h-8 w-8 items-center justify-center rounded-xl bg-white text-[#527b9f]">
+            <span className="mb-2 flex h-8 w-8 items-center justify-center rounded-xl bg-[#292522] text-[#ffad76]">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
                 <path d="M5 5h14M5 10h14M5 15h8M5 20h8" />
                 <path d="m16 17 2 2 3-4" />
               </svg>
             </span>
-            <span className="block text-xs font-semibold text-slate-800">Follow plan</span>
-            <span className="mt-1 block text-[9px] leading-relaxed text-slate-500">Load planned sets</span>
+            <span className="block text-xs font-semibold text-[#f6efea]">Follow plan</span>
+            <span className="mt-1 block text-[9px] leading-relaxed text-[#b8a9a0]">Load planned sets</span>
           </button>
           <button
             type="button"
             onClick={() => onSelect("own")}
-            className="rounded-[1.2rem] bg-[#f7efe5] p-3.5 text-left transition hover:bg-[#f2e7d8]"
+            className="rounded-[1.2rem] bg-[#3a2a22] p-3.5 text-left transition hover:bg-[#4b3428]"
           >
-            <span className="mb-2 flex h-8 w-8 items-center justify-center rounded-xl bg-white text-[#bf8249]">
+            <span className="mb-2 flex h-8 w-8 items-center justify-center rounded-xl bg-[#292522] text-[#ffb17e]">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" className="h-4 w-4" aria-hidden="true">
                 <path d="M12 5v14M5 12h14" />
               </svg>
             </span>
-            <span className="block text-xs font-semibold text-slate-800">Log own workout</span>
-            <span className="mt-1 block text-[9px] leading-relaxed text-slate-500">Build your own session</span>
+            <span className="block text-xs font-semibold text-[#f6efea]">Log own workout</span>
+            <span className="mt-1 block text-[9px] leading-relaxed text-[#b8a9a0]">Build your own session</span>
           </button>
         </div>
       </section>

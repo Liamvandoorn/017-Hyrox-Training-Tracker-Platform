@@ -29,10 +29,10 @@ export default function SimpleChart({
   description = "Training trend",
 }: SimpleChartProps) {
   if (data.length === 0) {
-    return <div className="flex h-full items-center justify-center text-xs text-slate-400">No data yet</div>;
+    return <div className="flex h-full items-center justify-center text-xs text-[#a99b93]">No data yet</div>;
   }
 
-  const stroke = color === "orange" ? "#ee9a48" : color === "green" ? "#65a68a" : "#648baa";
+  const stroke = color === "orange" ? "#ff9d5a" : color === "green" ? "#8bcea9" : "#f47f3e";
   const dataMax = Math.max(...data);
   const dataMin = Math.min(...data);
   const padding = Math.max(
@@ -67,8 +67,8 @@ export default function SimpleChart({
     >
       {[0, 0.5, 1].map((fraction) => (
         <g key={fraction}>
-          <line x1={xStart} y1={yTop + fraction * (yBottom - yTop)} x2={xEnd} y2={yTop + fraction * (yBottom - yTop)} stroke="#e8edf1" strokeWidth="1" />
-          <text x={xStart - 5} y={yTop + fraction * (yBottom - yTop)} dy="0.35em" fill="#718295" fontSize="9" textAnchor="end">
+          <line x1={xStart} y1={yTop + fraction * (yBottom - yTop)} x2={xEnd} y2={yTop + fraction * (yBottom - yTop)} stroke="#49403b" strokeWidth="1" />
+          <text x={xStart - 5} y={yTop + fraction * (yBottom - yTop)} dy="0.35em" fill="#b8a9a0" fontSize="9" textAnchor="end">
             {formatValue(max - fraction * range, unit)}
           </text>
         </g>
@@ -92,7 +92,7 @@ export default function SimpleChart({
           key={`${label}-${index}`}
           x={xForIndex(index)}
           y="125"
-          fill="#9aa6b0"
+          fill="#b8a9a0"
           fontSize="9"
           textAnchor={labels.length === 1 ? "middle" : index === 0 ? "start" : index === labels.length - 1 ? "end" : "middle"}
         >
