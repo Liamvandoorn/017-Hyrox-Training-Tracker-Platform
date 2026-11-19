@@ -25,8 +25,11 @@ function getCalendarDays(center: Date) {
 export default function DayCarousel({ onDaySelect, workoutCounts = {} }: DayCarouselProps) {
   const [today] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState(() => new Date());
+  const [isDragging, setIsDragging] = useState(false);
   const days = getCalendarDays(today);
   const selectedDayRef = useRef<HTMLButtonElement>(null);
+  const dragRef = useRef<{ pointerId: number; startX: number; scrollLeft: number; dragging: boolean } | null>(null);
+  const suppressClickRef = useRef(false);
 
   useEffect(() => {
     selectedDayRef.current?.scrollIntoView({
@@ -41,9 +44,58 @@ export default function DayCarousel({ onDaySelect, workoutCounts = {} }: DayCaro
     onDaySelect?.(date);
   };
 
+  const finishDrag = (event: React.PointerEvent<HTMLDivElement>) => {
+    if (dragRef.current?.pointerId !== event.pointerId) return;
+    suppressClickRef.current = dragRef.current.dragging;
+    dragRef.current = null;
+    setIsDragging(false);
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+  };
+
   return (
     <section aria-label="Choose a day" className="rounded-[1.65rem] border border-white/80 bg-white/55 p-3 shadow-[0_12px_30px_rgba(47,68,85,0.06)] backdrop-blur-sm">
-      <div className="flex snap-x snap-mandatory gap-1.5 overflow-x-auto pb-1 sm:gap-2">
+      <div
+        className={`flex gap-1.5 overflow-x-auto pb-1 sm:gap-2 ${isDragging ? "cursor-grabbing select-none" : "snap-x snap-mandatory cursor-grab"}`}
+        onPointerDown={(event) => {
+          suppressClickRef.current = false;
+          if (event.pointerType !== "mouse" || event.button !== 0) return;
+          dragRef.current = {
+            pointerId: event.pointerId,
+            startX: event.clientX,
+            scrollLeft: event.currentTarget.scrollLeft,
+            dragging: false,
+          };
+        }}
+        onPointerMove={(event) => {
+          const drag = dragRef.current;
+          if (!drag || drag.pointerId !== event.pointerId) return;
+          const delta = event.clientX - drag.startX;
+          if (!drag.dragging && Math.abs(delta) < 6) return;
+          if (!drag.dragging) {
+            drag.dragging = true;
+            setIsDragging(true);
+            event.currentTarget.setPointerCapture(event.pointerId);
+          }
+          event.preventDefault();
+          event.currentTarget.scrollLeft = drag.scrollLeft - delta;
+        }}
+        onPointerUp={finishDrag}
+        onPointerCancel={finishDrag}
+        onLostPointerCapture={() => {
+          dragRef.current = null;
+          setIsDragging(false);
+        }}
+        onClickCapture={(event) => {
+          if (suppressClickRef.current) {
+            event.preventDefault();
+            event.stopPropagation();
+            suppressClickRef.current = false;
+          }
+        }}
+        onDragStart={(event) => event.preventDefault()}
+      >
         {days.map((date) => {
           const dateKey = getDateKey(date);
           const selected = dateKey === getDateKey(selectedDate);
