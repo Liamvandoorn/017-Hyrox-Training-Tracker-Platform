@@ -13,6 +13,13 @@ import type { WorkoutPlan, WorkoutSet, WorkoutSetUnit, WorkoutSource } from "@/l
 
 type PageMode = "choose" | "plan" | "workout" | "finished";
 
+interface RestTimer {
+  setId: string;
+  category: string;
+  durationSeconds: number;
+  endsAt: number;
+}
+
 function localDateValue() {
   const date = new Date();
   const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
@@ -241,6 +248,27 @@ export default function WorkoutPage() {
   const [showAbortConfirmation, setShowAbortConfirmation] = useState(false);
   const [pendingFlow, setPendingFlow] = useState<WorkoutFlow | null>(null);
   const [showStartSheet, setShowStartSheet] = useState(true);
+  const [restTimer, setRestTimer] = useState<RestTimer | null>(null);
+  const [restRemaining, setRestRemaining] = useState(0);
+
+  useEffect(() => {
+    if (!restTimer) return;
+
+    const updateRemaining = () => {
+      setRestRemaining(Math.max(0, Math.ceil((restTimer.endsAt - Date.now()) / 1000)));
+    };
+    updateRemaining();
+    const interval = window.setInterval(() => {
+      updateRemaining();
+      if (Date.now() >= restTimer.endsAt) window.clearInterval(interval);
+    }, 250);
+    const onVisibilityChange = () => updateRemaining();
+    document.addEventListener("visibilitychange", onVisibilityChange);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+    };
+  }, [restTimer]);
 
   const totalTime = useMemo(
     () => sets.reduce((total, set) => total + set.timeSeconds, 0),
@@ -271,6 +299,7 @@ export default function WorkoutPage() {
   );
 
   const startOwnWorkout = useCallback(() => {
+    setRestTimer(null);
     setShowStartSheet(false);
     setSource("own");
     setWorkoutName("My workout");
@@ -284,6 +313,7 @@ export default function WorkoutPage() {
   }, []);
 
   const startPlannedWorkout = (plan: WorkoutPlan) => {
+    setRestTimer(null);
     setShowStartSheet(false);
     setSource("plan");
     setWorkoutName(plan.name);
@@ -355,6 +385,23 @@ export default function WorkoutPage() {
     setSets((current) =>
       current.map((set) => (set.id === id ? { ...set, ...changes } : set))
     );
+  };
+
+  const toggleSetCompletion = (set: WorkoutSet) => {
+    updateSet(set.id, { completed: !set.completed });
+    if (set.completed) {
+      setRestTimer((current) => current?.setId === set.id ? null : current);
+    } else if (set.restSeconds > 0) {
+      setRestRemaining(set.restSeconds);
+      setRestTimer({
+        setId: set.id,
+        category: set.category,
+        durationSeconds: set.restSeconds,
+        endsAt: Date.now() + set.restSeconds * 1000,
+      });
+    } else {
+      setRestTimer(null);
+    }
   };
 
   const updateSetAmount = (set: WorkoutSet, value: string) => {
@@ -431,6 +478,7 @@ export default function WorkoutPage() {
         throw new Error(result.error || "Could not save your workout.");
       }
       setSets(completedSets);
+      setRestTimer(null);
       setMode("finished");
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Could not save your workout.");
@@ -440,6 +488,7 @@ export default function WorkoutPage() {
   };
 
   const resetWorkout = () => {
+    setRestTimer(null);
     setSets([]);
     setError("");
     setPendingFlow(null);
@@ -505,6 +554,7 @@ export default function WorkoutPage() {
 
   const abortWorkout = () => {
     setShowAbortConfirmation(false);
+    setRestTimer(null);
     setSets([]);
     setError("");
     setIsEditingName(false);
@@ -619,6 +669,45 @@ export default function WorkoutPage() {
 
         {mode === "workout" && (
           <div className="space-y-4">
+            {restTimer && (
+              <section aria-label="Rest timer" className="rounded-[1.4rem] border border-[#d8e4ec] bg-white/90 p-4 shadow-[0_12px_30px_rgba(47,68,85,0.06)]">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[#66839a]">
+                      {restRemaining > 0 ? "Rest time" : "Rest complete"}
+                    </p>
+                    <p className="mt-1 text-xs text-slate-500">{restTimer.category} · {formatTime(restTimer.durationSeconds)} rest</p>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <span aria-label={`${restRemaining} seconds remaining`} className="text-xl font-semibold tabular-nums text-slate-800">
+                      {formatTime(restRemaining)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setRestTimer(null)}
+                      className="rounded-lg bg-slate-100 px-2.5 py-1.5 text-xs font-semibold text-slate-600 hover:bg-slate-200"
+                    >
+                      {restRemaining > 0 ? "Skip rest" : "Dismiss"}
+                    </button>
+                  </div>
+                </div>
+                <div
+                  role="progressbar"
+                  aria-label="Rest time remaining"
+                  aria-valuemin={0}
+                  aria-valuemax={restTimer.durationSeconds}
+                  aria-valuenow={restRemaining}
+                  aria-valuetext={`${formatTime(restRemaining)} remaining`}
+                  className="mt-3 h-2 overflow-hidden rounded-full bg-[#e6edf2]"
+                >
+                  <div
+                    className="h-full rounded-full bg-[#527b9f] transition-[width] duration-300"
+                    style={{ width: `${(restRemaining / restTimer.durationSeconds) * 100}%` }}
+                  />
+                </div>
+                {restRemaining === 0 && <p role="status" className="mt-2 text-xs font-semibold text-emerald-700">Rest complete. Ready for your next set.</p>}
+              </section>
+            )}
             <section className="rounded-[1.8rem] border border-white/85 bg-white/85 p-5 shadow-[0_12px_30px_rgba(47,68,85,0.06)] sm:p-6">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
@@ -698,7 +787,7 @@ export default function WorkoutPage() {
                               type="button"
                               aria-label={`${set.completed ? "Reopen" : "Complete"} set ${index + 1}`}
                               aria-pressed={set.completed}
-                              onClick={() => updateSet(set.id, { completed: !set.completed })}
+                              onClick={() => toggleSetCompletion(set)}
                               className={`row-span-2 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border text-xs font-semibold transition ${
                                 set.completed ? "border-emerald-500 bg-emerald-500 text-white" : "border-slate-200 bg-white text-slate-600 hover:border-emerald-400"
                               }`}
