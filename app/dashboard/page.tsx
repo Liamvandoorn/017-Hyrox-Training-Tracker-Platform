@@ -10,6 +10,7 @@ import DayWorkoutPreview from "@/components/DayWorkoutPreview";
 import Navbar from "@/components/Navbar";
 import SimpleChart from "@/components/SimpleChart";
 import TotalTimeBox from "@/components/TotalTimeBox";
+import { WORKOUT_CATEGORIES } from "@/lib/types";
 import type { WorkoutRecord, WorkoutSet } from "@/lib/types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -123,10 +124,12 @@ function getWeeklyRunningTrend(workouts: WorkoutRecord[]) {
     (_, index) => currentWeekStart - (WEEK_COUNT - index - 1) * WEEK_MS
   );
   const weeklyMeters = new Map(weekStarts.map((start) => [start, 0]));
+  const weeklyWorkouts = new Map(weekStarts.map((start) => [start, 0]));
 
   for (const workout of workouts) {
     const workoutWeek = getMondayStart(new Date(`${workout.date}T00:00:00.000Z`).getTime());
     if (!weeklyMeters.has(workoutWeek)) continue;
+    weeklyWorkouts.set(workoutWeek, (weeklyWorkouts.get(workoutWeek) ?? 0) + 1);
 
     for (const set of workout.sets) {
       if (set.completed && set.category.trim().toLowerCase() === "running" && set.unit === "m") {
@@ -142,10 +145,59 @@ function getWeeklyRunningTrend(workouts: WorkoutRecord[]) {
 
   return {
     labels,
-    data: exactKilometers.map((distance) => Math.round(distance * 10) / 10),
+    data: exactKilometers,
+    workoutCounts: weekStarts.map((start) => weeklyWorkouts.get(start) ?? 0),
     currentWeekKilometers: exactKilometers[exactKilometers.length - 1],
     hasData: exactKilometers.some((distance) => distance > 0),
   };
+}
+
+function formatChartDate(date: string): string {
+  return new Intl.DateTimeFormat("en", {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(`${date}T00:00:00.000Z`));
+}
+
+function getExerciseTrends(workouts: WorkoutRecord[]) {
+  const dailyTimes = new Map<string, Map<string, number>>(
+    WORKOUT_CATEGORIES.map((category) => [category.toLowerCase(), new Map<string, number>()])
+  );
+  const dailyRunningPaces = new Map<string, number>();
+
+  for (const workout of workouts) {
+    for (const set of workout.sets) {
+      if (!set.completed || set.timeSeconds <= 0) continue;
+      const category = set.category.trim().toLowerCase();
+      const days = dailyTimes.get(category);
+      if (!days) continue;
+      days.set(workout.date, Math.min(days.get(workout.date) ?? Infinity, set.timeSeconds));
+      if (category === "running" && set.unit === "m") {
+        const pace = Math.round((set.timeSeconds / set.amount) * 1000);
+        dailyRunningPaces.set(
+          workout.date,
+          Math.min(dailyRunningPaces.get(workout.date) ?? Infinity, pace)
+        );
+      }
+    }
+  }
+
+  const toPoints = (days: Map<string, number>) =>
+    Array.from(days, ([date, seconds]) => ({ date, seconds }))
+      .sort((left, right) => left.date.localeCompare(right.date));
+
+  const exerciseTrends = WORKOUT_CATEGORIES.map((category) => ({
+    category,
+    points: toPoints(dailyTimes.get(category.toLowerCase()) ?? new Map()).slice(-WEEK_COUNT),
+  }));
+  let runningBest = Infinity;
+  const runningBestTrend = toPoints(dailyRunningPaces).map((point) => {
+    runningBest = Math.min(runningBest, point.seconds);
+    return { ...point, seconds: runningBest };
+  }).slice(-WEEK_COUNT);
+
+  return { exerciseTrends, runningBestTrend };
 }
 
 function getSimulationHistory(workouts: WorkoutRecord[]) {
@@ -273,6 +325,10 @@ export default function Dashboard() {
     () => getBestExerciseTimes(workouts ?? []),
     [workouts]
   );
+  const { exerciseTrends, runningBestTrend } = useMemo(
+    () => getExerciseTrends(workouts ?? []),
+    [workouts]
+  );
   const bestHyroxSeconds = requiredBestTimeKeys.every(
     (key) => bestExerciseResults.seconds[key] !== undefined
   )
@@ -365,13 +421,13 @@ export default function Dashboard() {
           />
         </section>
 
-        <section aria-label="Training trends" className="grid grid-cols-2 gap-3 sm:gap-4">
+        <section aria-label="Training trends" className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
           <ChartContainer
             title="Weekly running"
             subtitle={workouts === null ? "Completed distance · km" : `${runningTrend.currentWeekKilometers.toFixed(1)} km this week`}
           >
             {runningTrend.hasData ? (
-              <SimpleChart data={runningTrend.data} labels={runningTrend.labels} color="blue" />
+              <SimpleChart data={runningTrend.data} labels={runningTrend.labels} color="blue" unit="km" description="Weekly running distance in kilometers" />
             ) : (
               <p role={workoutsError ? "alert" : "status"} className="flex h-full items-center justify-center px-1 text-center text-[10px] leading-relaxed text-slate-400">
                 {runningMessage}
@@ -388,15 +444,11 @@ export default function Dashboard() {
           >
             {recentSimulationHistory.length ? (
               <SimpleChart
-                data={recentSimulationHistory.map((workout) => Math.round((workout.seconds / 60) * 10) / 10)}
-                labels={recentSimulationHistory.map((workout) =>
-                  new Intl.DateTimeFormat("en", {
-                    month: "short",
-                    day: "numeric",
-                    timeZone: "UTC",
-                  }).format(new Date(`${workout.date}T00:00:00.000Z`))
-                )}
+                data={recentSimulationHistory.map((workout) => workout.seconds)}
+                labels={recentSimulationHistory.map((workout) => formatChartDate(workout.date))}
                 color="orange"
+                unit="seconds"
+                description="Completed workout set time"
               />
             ) : (
               <p role={workoutsError ? "alert" : "status"} className="flex h-full items-center justify-center px-1 text-center text-[10px] leading-relaxed text-slate-400">
@@ -407,6 +459,66 @@ export default function Dashboard() {
         </section>
 
         <AITrainingSummary summary="Your training summary will appear here once workout logging is connected. Keep recording your sessions to see trends in running volume, station pace, and recovery." />
+
+        <section aria-labelledby="exercise-trends-heading" className="space-y-3">
+          <div className="px-1">
+            <h2 id="exercise-trends-heading" className="text-base font-semibold text-[#edf3f8]">Exercise time trends</h2>
+            <p className="mt-1 text-xs text-slate-400">
+              Fastest completed set per day, excluding rest. Distance, reps and weight can vary between sets.
+            </p>
+          </div>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+            {exerciseTrends.map(({ category, points }) => (
+              <ChartContainer key={category} title={category} subtitle="Fastest set per day · time">
+                {points.length ? (
+                  <SimpleChart
+                    data={points.map((point) => point.seconds)}
+                    labels={points.map((point) => formatChartDate(point.date))}
+                    unit="seconds"
+                    description={`${category} fastest set per day`}
+                  />
+                ) : (
+                  <p role={workoutsError ? "alert" : "status"} className="flex h-full items-center justify-center px-1 text-center text-[10px] leading-relaxed text-slate-400">
+                    {workoutsError ?? (workouts === null ? "Loading saved workouts..." : "No completed timed sets yet.")}
+                  </p>
+                )}
+              </ChartContainer>
+            ))}
+          </div>
+        </section>
+
+        <section aria-label="Running pace and workout frequency" className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
+          <ChartContainer title="Best running pace" subtitle="Personal best · time per 1,000 m">
+            {runningBestTrend.length ? (
+              <SimpleChart
+                data={runningBestTrend.map((point) => point.seconds)}
+                labels={runningBestTrend.map((point) => formatChartDate(point.date))}
+                unit="seconds"
+                color="green"
+                description="Best running average pace per 1,000 meters"
+              />
+            ) : (
+              <p role={workoutsError ? "alert" : "status"} className="flex h-full items-center justify-center px-1 text-center text-[10px] leading-relaxed text-slate-400">
+                {workoutsError ?? (workouts === null ? "Loading saved workouts..." : "No completed timed runs yet.")}
+              </p>
+            )}
+          </ChartContainer>
+          <ChartContainer title="Workout frequency" subtitle="Saved workouts per week">
+            {runningTrend.workoutCounts.some((count) => count > 0) ? (
+              <SimpleChart
+                data={runningTrend.workoutCounts}
+                labels={runningTrend.labels}
+                unit="count"
+                color="green"
+                description="Saved workouts per week"
+              />
+            ) : (
+              <p role={workoutsError ? "alert" : "status"} className="flex h-full items-center justify-center px-1 text-center text-[10px] leading-relaxed text-slate-400">
+                {workoutsError ?? (workouts === null ? "Loading saved workouts..." : "No workouts in the last 7 weeks.")}
+              </p>
+            )}
+          </ChartContainer>
+        </section>
       </div>
       <Navbar />
       {showDayPreview && (

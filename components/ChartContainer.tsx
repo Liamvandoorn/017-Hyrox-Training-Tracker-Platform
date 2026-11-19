@@ -13,7 +13,7 @@ export default function ChartContainer({ title, subtitle, children }: ChartConta
         <h2 className="text-[11px] font-semibold leading-snug tracking-tight text-slate-800 sm:text-sm">{title}</h2>
         {subtitle && <p className="mt-1 text-[10px] font-medium text-slate-400 sm:text-xs">{subtitle}</p>}
       </div>
-      <div className="h-[88px] w-full sm:h-32">{children}</div>
+      <div className="h-32 w-full sm:h-36">{children}</div>
     </section>
   );
 }

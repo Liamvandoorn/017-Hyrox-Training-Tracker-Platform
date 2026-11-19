@@ -87,6 +87,8 @@ Best times use completed sets only. Running times are normalized to a 1,000 m eq
 - Farmer carries: 200 m with 16 kg or heavier per kettlebell
 - Wall balls: 100 reps at 4 kg or more
 
+The dashboard's exercise charts show the fastest completed timed set per day, even if it does not meet the benchmark minimums; distance, reps, and weight may differ. The best running pace chart shows the cumulative personal best 1,000 m equivalent over the latest seven days with timed runs. The weekly workout frequency chart counts saved workouts.
+
 ## Deployment
 
 ### Vercel (Recommended)
