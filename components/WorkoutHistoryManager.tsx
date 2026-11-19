@@ -179,8 +179,8 @@ function TimeField({
   const [minutes = "00", seconds = "00"] = value.split(":");
   return (
     <label className="block">
-      <span className="mb-1 block text-[10px] font-medium text-[#b8a9a0]">{label}</span>
-      <span className="flex h-10 items-center rounded-lg border border-white/10 bg-[#292522] px-2">
+      <span className="mb-1 block text-[10px] font-medium text-[#b8b3ba]">{label}</span>
+      <span className="flex h-10 items-center rounded-lg border border-white/10 bg-[#27272b] px-2">
         <input
           aria-label={`${label} minutes`}
           inputMode="numeric"
@@ -189,9 +189,9 @@ function TimeField({
           onChange={(event) =>
             onChange(`${event.target.value.replace(/\D/g, "").slice(0, 3)}:${seconds}`)
           }
-          className="w-1/2 min-w-0 bg-transparent text-center text-sm tabular-nums text-[#f6efea] outline-none"
+          className="w-1/2 min-w-0 bg-transparent text-center text-sm tabular-nums text-[#f3f2f4] outline-none"
         />
-        <span aria-hidden="true" className="text-sm text-[#a99b93]">:</span>
+        <span aria-hidden="true" className="text-sm text-[#aaa5ad]">:</span>
         <input
           aria-label={`${label} seconds`}
           inputMode="numeric"
@@ -200,7 +200,7 @@ function TimeField({
           onChange={(event) =>
             onChange(`${minutes}:${event.target.value.replace(/\D/g, "").slice(0, 2)}`)
           }
-          className="w-1/2 min-w-0 bg-transparent text-center text-sm tabular-nums text-[#f6efea] outline-none"
+          className="w-1/2 min-w-0 bg-transparent text-center text-sm tabular-nums text-[#f3f2f4] outline-none"
         />
       </span>
     </label>
@@ -329,13 +329,13 @@ export default function WorkoutHistoryManager() {
   return (
     <section
       aria-labelledby="workout-history-heading"
-      className="mb-5 rounded-[1.7rem] border border-white/10 bg-[#201d1c] p-5 shadow-sm sm:p-7"
+      className="mb-5 rounded-[1.7rem] border border-white/10 bg-[#1c1c1f] p-5 shadow-sm sm:p-7"
     >
       <div className="mb-5">
-        <h2 id="workout-history-heading" className="text-lg font-semibold text-[#f6efea]">
+        <h2 id="workout-history-heading" className="text-lg font-semibold text-[#f3f2f4]">
           Logged workouts
         </h2>
-        <p className="mt-1 text-sm text-[#b8a9a0]">
+        <p className="mt-1 text-sm text-[#b8b3ba]">
           Preview, edit, or delete saved training sessions.
         </p>
       </div>
@@ -350,9 +350,9 @@ export default function WorkoutHistoryManager() {
           {notice}
         </p>
       )}
-      {isLoading && <p role="status" className="py-4 text-sm text-[#a99b93]">Loading workouts...</p>}
+      {isLoading && <p role="status" className="py-4 text-sm text-[#aaa5ad]">Loading workouts...</p>}
       {!isLoading && workouts?.length === 0 && (
-        <p className="rounded-xl border border-dashed border-white/10 px-4 py-6 text-center text-sm text-[#a99b93]">
+        <p className="rounded-xl border border-dashed border-white/10 px-4 py-6 text-center text-sm text-[#aaa5ad]">
           No workouts logged yet.
         </p>
       )}
@@ -364,11 +364,11 @@ export default function WorkoutHistoryManager() {
           const isBusy = busyId === workout.id;
 
           return (
-            <article key={workout.id} className="rounded-xl border border-white/10 bg-[#262220] p-3 sm:p-4">
+            <article key={workout.id} className="rounded-xl border border-white/10 bg-[#242427] p-3 sm:p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <h3 className="truncate font-semibold text-[#f6efea]">{workout.name}</h3>
-                  <p className="mt-1 text-xs text-[#b8a9a0]">
+                  <h3 className="truncate font-semibold text-[#f3f2f4]">{workout.name}</h3>
+                  <p className="mt-1 text-xs text-[#b8b3ba]">
                     {new Date(`${workout.date}T12:00:00`).toLocaleDateString("en", {
                       weekday: "short",
                       month: "short",
@@ -390,7 +390,7 @@ export default function WorkoutHistoryManager() {
                       setPreviewId(isPreviewing ? null : workout.id);
                       setError("");
                     }}
-                    className="rounded-lg border border-white/10 bg-[#292522] px-2.5 py-1.5 text-xs font-medium text-[#d1c1b8] hover:bg-[#302b28]"
+                    className="rounded-lg border border-white/10 bg-[#27272b] px-2.5 py-1.5 text-xs font-medium text-[#cbc7cd] hover:bg-[#303034]"
                   >
                     {isPreviewing ? "Close" : "Preview"}
                   </button>
@@ -402,7 +402,7 @@ export default function WorkoutHistoryManager() {
                       setDraft(toDraft(workout));
                       setError("");
                     }}
-                    className="rounded-lg border border-[#664332] bg-[#342a25] px-2.5 py-1.5 text-xs font-semibold text-[#ffb17e] hover:bg-[#45342b]"
+                    className="rounded-lg border border-[#67414e] bg-[#30282d] px-2.5 py-1.5 text-xs font-semibold text-[#ffb0bd] hover:bg-[#41343b]"
                   >
                     Edit
                   </button>
@@ -421,8 +421,8 @@ export default function WorkoutHistoryManager() {
                 <ol aria-label={`${workout.name} sets`} className="mt-4 space-y-2 border-t border-white/10 pt-3">
                   {workout.sets.map((set, index) => (
                     <li key={set.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs">
-                      <span className="font-medium text-[#e7dcd5]">{index + 1}. {set.category}</span>
-                      <span className="text-right text-[#b8a9a0]">
+                      <span className="font-medium text-[#e2e0e3]">{index + 1}. {set.category}</span>
+                      <span className="text-right text-[#b8b3ba]">
                         {set.amount} {set.unit}
                         {set.weightKg !== undefined
                           ? ` · ${set.weightKg} kg${set.category === "Farmer carries" ? " / kettlebell" : ""}`
@@ -441,30 +441,30 @@ export default function WorkoutHistoryManager() {
                 <div className="mt-4 space-y-4 border-t border-white/10 pt-4">
                   <div className="grid gap-3 sm:grid-cols-2">
                     <label className="block">
-                      <span className="mb-1 block text-xs font-medium text-[#d1c1b8]">Workout name</span>
+                      <span className="mb-1 block text-xs font-medium text-[#cbc7cd]">Workout name</span>
                       <input
                         value={draft.name}
                         onChange={(event) => updateDraft({ name: event.target.value })}
                         maxLength={120}
-                        className="h-10 w-full rounded-lg border border-white/10 bg-[#292522] px-3 text-sm text-[#f6efea] outline-none focus:border-[#8b5b40]"
+                        className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-3 text-sm text-[#f3f2f4] outline-none focus:border-[#91576a]"
                       />
                     </label>
                     <label className="block">
-                      <span className="mb-1 block text-xs font-medium text-[#d1c1b8]">Date</span>
+                      <span className="mb-1 block text-xs font-medium text-[#cbc7cd]">Date</span>
                       <input
                         type="date"
                         value={draft.date}
                         onChange={(event) => updateDraft({ date: event.target.value })}
-                        className="h-10 w-full rounded-lg border border-white/10 bg-[#292522] px-3 text-sm text-[#f6efea] outline-none focus:border-[#8b5b40]"
+                        className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-3 text-sm text-[#f3f2f4] outline-none focus:border-[#91576a]"
                       />
                     </label>
                   </div>
 
                   <div className="space-y-3">
                     {draft.sets.map((set, index) => (
-                      <div key={set.id} className="rounded-xl border border-white/10 bg-[#292522] p-3">
+                      <div key={set.id} className="rounded-xl border border-white/10 bg-[#27272b] p-3">
                         <div className="mb-3 flex items-center justify-between">
-                          <span className="text-xs font-semibold text-[#e7dcd5]">Set {index + 1}</span>
+                          <span className="text-xs font-semibold text-[#e2e0e3]">Set {index + 1}</span>
                           <button
                             type="button"
                             onClick={() => setDraft((current) => current
@@ -477,7 +477,7 @@ export default function WorkoutHistoryManager() {
                         </div>
                         <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                           <label className="col-span-2 block sm:col-span-2">
-                            <span className="mb-1 block text-[10px] font-medium text-[#b8a9a0]">Exercise</span>
+                            <span className="mb-1 block text-[10px] font-medium text-[#b8b3ba]">Exercise</span>
                             <select
                               value={set.category}
                               onChange={(event) => updateDraftSet(set.id, {
@@ -496,7 +496,7 @@ export default function WorkoutHistoryManager() {
                                       : set.weightKg || "50"
                                   : "",
                               })}
-                              className="h-10 w-full rounded-lg border border-white/10 bg-[#292522] px-2 text-xs text-[#f6efea] outline-none focus:border-[#8b5b40]"
+                              className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs text-[#f3f2f4] outline-none focus:border-[#91576a]"
                             >
                               {!WORKOUT_CATEGORIES.some((category) => category === set.category) && (
                                 <option value={set.category}>{set.category}</option>
@@ -505,18 +505,18 @@ export default function WorkoutHistoryManager() {
                             </select>
                           </label>
                           <label className="block">
-                            <span className="mb-1 block text-[10px] font-medium text-[#b8a9a0]">Amount</span>
+                            <span className="mb-1 block text-[10px] font-medium text-[#b8b3ba]">Amount</span>
                             <input
                               type="number"
                               min="0"
                               step={set.unit === "reps" ? "1" : "0.1"}
                               value={set.amount}
                               onChange={(event) => updateDraftSet(set.id, { amount: event.target.value })}
-                              className="h-10 w-full rounded-lg border border-white/10 bg-[#292522] px-2 text-xs text-[#f6efea] outline-none focus:border-[#8b5b40]"
+                              className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs text-[#f3f2f4] outline-none focus:border-[#91576a]"
                             />
                           </label>
                           <label className="block">
-                            <span className="mb-1 block text-[10px] font-medium text-[#b8a9a0]">Unit</span>
+                            <span className="mb-1 block text-[10px] font-medium text-[#b8b3ba]">Unit</span>
                             <select
                               value={set.unit}
                               onChange={(event) => {
@@ -524,7 +524,7 @@ export default function WorkoutHistoryManager() {
                                   updateDraftSet(set.id, { unit: event.target.value });
                                 }
                               }}
-                              className="h-10 w-full rounded-lg border border-white/10 bg-[#292522] px-2 text-xs text-[#f6efea] outline-none focus:border-[#8b5b40]"
+                              className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs text-[#f3f2f4] outline-none focus:border-[#91576a]"
                             >
                               <option value="m">Meters</option>
                               <option value="kg">Kilograms</option>
@@ -542,7 +542,7 @@ export default function WorkoutHistoryManager() {
                             onChange={(restTime) => updateDraftSet(set.id, { restTime })}
                           />
                           <label className="block">
-                            <span className="mb-1 block text-[10px] font-medium text-[#b8a9a0]">
+                            <span className="mb-1 block text-[10px] font-medium text-[#b8b3ba]">
                               {set.category === "Farmer carries"
                                 ? "Weight · kg / kettlebell"
                                 : "Weight · kg"}
@@ -553,7 +553,7 @@ export default function WorkoutHistoryManager() {
                               step="0.5"
                               value={set.weightKg}
                               onChange={(event) => updateDraftSet(set.id, { weightKg: event.target.value })}
-                              className="h-10 w-full rounded-lg border border-white/10 bg-[#292522] px-2 text-xs text-[#f6efea] outline-none focus:border-[#8b5b40]"
+                              className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs text-[#f3f2f4] outline-none focus:border-[#91576a]"
                             />
                           </label>
                         </div>
@@ -576,7 +576,7 @@ export default function WorkoutHistoryManager() {
                             }],
                           }
                         : current)}
-                      className="rounded-lg border border-dashed border-white/20 px-3 py-2 text-xs font-semibold text-[#d1c1b8] hover:border-[#8b5b40] hover:text-[#ffb17e]"
+                      className="rounded-lg border border-dashed border-white/20 px-3 py-2 text-xs font-semibold text-[#cbc7cd] hover:border-[#91576a] hover:text-[#ffb0bd]"
                     >
                       Add set
                     </button>
@@ -590,7 +590,7 @@ export default function WorkoutHistoryManager() {
                         setDraft(null);
                         setError("");
                       }}
-                      className="rounded-lg border border-white/10 bg-[#292522] px-3 py-2 text-xs font-semibold text-[#d1c1b8] hover:bg-[#302b28]"
+                      className="rounded-lg border border-white/10 bg-[#27272b] px-3 py-2 text-xs font-semibold text-[#cbc7cd] hover:bg-[#303034]"
                     >
                       Cancel
                     </button>
@@ -598,7 +598,7 @@ export default function WorkoutHistoryManager() {
                       type="button"
                       onClick={() => void saveWorkout(workout.id)}
                       disabled={isBusy}
-                      className="rounded-lg bg-[#f47f3e] px-4 py-2 text-xs font-semibold text-[#28160e] hover:bg-[#ff9a59] disabled:opacity-50"
+                      className="rounded-lg bg-[#f16b84] px-4 py-2 text-xs font-semibold text-[#290f18] hover:bg-[#ff91a5] disabled:opacity-50"
                     >
                       {isBusy ? "Saving..." : "Save changes"}
                     </button>

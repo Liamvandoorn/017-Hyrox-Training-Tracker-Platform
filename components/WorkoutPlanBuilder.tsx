@@ -90,8 +90,8 @@ function SetTimeInput({
   const [minutes = "", seconds = ""] = value.split(":");
   return (
     <label className="min-w-0">
-      <span className="mb-1 block text-[8px] font-bold uppercase tracking-wide text-[#a99b93]">{label}</span>
-      <span className="flex h-10 items-center justify-center rounded-lg border border-white/10 bg-[#292522] px-1 focus-within:border-[#8b5b40]">
+      <span className="mb-1 block text-[8px] font-bold uppercase tracking-wide text-[#aaa5ad]">{label}</span>
+      <span className="flex h-10 items-center justify-center rounded-lg border border-white/10 bg-[#27272b] px-1 focus-within:border-[#91576a]">
         <input
           type="text"
           inputMode="numeric"
@@ -99,9 +99,9 @@ function SetTimeInput({
           aria-label={`${label} minutes`}
           value={minutes}
           onChange={(event) => onChange(`${event.target.value.replace(/\D/g, "").slice(0, 3)}:${seconds}`)}
-          className="min-w-0 w-1/2 bg-transparent text-center text-xs font-semibold tabular-nums text-[#e7dcd5] outline-none"
+          className="min-w-0 w-1/2 bg-transparent text-center text-xs font-semibold tabular-nums text-[#e2e0e3] outline-none"
         />
-        <span aria-hidden="true" className="text-xs font-semibold text-[#b8a9a0]">:</span>
+        <span aria-hidden="true" className="text-xs font-semibold text-[#b8b3ba]">:</span>
         <input
           type="text"
           inputMode="numeric"
@@ -109,7 +109,7 @@ function SetTimeInput({
           aria-label={`${label} seconds`}
           value={seconds}
           onChange={(event) => onChange(`${minutes}:${event.target.value.replace(/\D/g, "").slice(0, 2)}`)}
-          className="min-w-0 w-1/2 bg-transparent text-center text-xs font-semibold tabular-nums text-[#e7dcd5] outline-none"
+          className="min-w-0 w-1/2 bg-transparent text-center text-xs font-semibold tabular-nums text-[#e2e0e3] outline-none"
         />
       </span>
     </label>
@@ -293,12 +293,12 @@ export default function WorkoutPlanBuilder() {
   return (
     <section
       aria-labelledby="plan-builder-heading"
-      className="mb-5 rounded-[1.7rem] border border-white/10 bg-[#201d1c] p-5 shadow-sm sm:p-7"
+      className="mb-5 rounded-[1.7rem] border border-white/10 bg-[#1c1c1f] p-5 shadow-sm sm:p-7"
     >
       <div className="mb-5 flex flex-wrap items-start justify-between gap-3">
         <div>
-          <h2 id="plan-builder-heading" className="text-lg font-semibold text-[#f6efea]">Workout plans</h2>
-          <p className="mt-1 text-sm text-[#b8a9a0]">Build reusable sessions, then select them from Follow plan.</p>
+          <h2 id="plan-builder-heading" className="text-lg font-semibold text-[#f3f2f4]">Workout plans</h2>
+          <p className="mt-1 text-sm text-[#b8b3ba]">Build reusable sessions, then select them from Follow plan.</p>
         </div>
         {editingPlanId === null && !isCreating && plans !== null && plans.length > 0 && (
           <button
@@ -310,7 +310,7 @@ export default function WorkoutPlanBuilder() {
               setNotice("");
               document.getElementById("plan-name")?.focus();
             }}
-            className="rounded-lg bg-[#f47f3e] px-3 py-2 text-xs font-semibold text-[#28160e] hover:bg-[#ff9a59]"
+            className="rounded-lg bg-[#f16b84] px-3 py-2 text-xs font-semibold text-[#290f18] hover:bg-[#ff91a5]"
           >
             New plan
           </button>
@@ -321,32 +321,32 @@ export default function WorkoutPlanBuilder() {
       {notice && <p role="status" className="mb-4 rounded-lg border border-[#36594a] bg-[#1d3028] px-3 py-2 text-sm text-[#8ed9b1]">{notice}</p>}
 
       {(editingPlanId !== null || isCreating || plans?.length === 0) && (
-        <form onSubmit={savePlan} className="mb-6 rounded-xl border border-white/10 bg-[#262220] p-3 sm:p-4">
+        <form onSubmit={savePlan} className="mb-6 rounded-xl border border-white/10 bg-[#242427] p-3 sm:p-4">
           <label htmlFor="plan-name" className="mb-3 block">
-            <span className="mb-1 block text-xs font-medium text-[#d1c1b8]">Plan name</span>
+            <span className="mb-1 block text-xs font-medium text-[#cbc7cd]">Plan name</span>
             <input
               id="plan-name"
               value={name}
               onChange={(event) => setName(event.target.value)}
               maxLength={120}
               placeholder="e.g. HYROX race prep"
-              className="h-10 w-full rounded-lg border border-white/10 bg-[#292522] px-3 text-sm text-[#f6efea] outline-none focus:border-[#8b5b40]"
+              className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-3 text-sm text-[#f3f2f4] outline-none focus:border-[#91576a]"
             />
           </label>
 
           <div className="mb-3 grid items-end gap-2 sm:grid-cols-2">
             <label>
-              <span className="mb-1 block text-[10px] font-medium text-[#b8a9a0]">Exercise</span>
+              <span className="mb-1 block text-[10px] font-medium text-[#b8b3ba]">Exercise</span>
               <select
                 value={setDraft.category}
                 onChange={(event) => changeCategory(event.target.value)}
-                className="h-10 w-full rounded-lg border border-white/10 bg-[#292522] px-2 text-xs text-[#f6efea] outline-none focus:border-[#8b5b40]"
+                className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs text-[#f3f2f4] outline-none focus:border-[#91576a]"
               >
                 {WORKOUT_CATEGORIES.map((category) => <option key={category}>{category}</option>)}
               </select>
             </label>
             <label>
-              <span className="mb-1 block text-[10px] font-medium text-[#b8a9a0]">
+              <span className="mb-1 block text-[10px] font-medium text-[#b8b3ba]">
                 {getWorkoutSetUnit(setDraft.category) === "m" ? "Distance · m" : "Reps"}
               </span>
               <input
@@ -355,7 +355,7 @@ export default function WorkoutPlanBuilder() {
                 step={getWorkoutSetUnit(setDraft.category) === "reps" ? "1" : "0.1"}
                 value={setDraft.amount}
                 onChange={(event) => setSetDraft((current) => ({ ...current, amount: event.target.value }))}
-                className="h-10 w-full rounded-lg border border-white/10 bg-[#292522] px-2 text-xs text-[#f6efea] outline-none focus:border-[#8b5b40]"
+                className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs text-[#f3f2f4] outline-none focus:border-[#91576a]"
               />
             </label>
           </div>
@@ -363,7 +363,7 @@ export default function WorkoutPlanBuilder() {
           <div className={`grid items-end gap-2 ${requiresWeight(setDraft.category) ? "grid-cols-2 sm:grid-cols-4" : "grid-cols-2 sm:grid-cols-3"}`}>
             {requiresWeight(setDraft.category) && (
               <label>
-                <span className="mb-1 block text-[10px] font-medium text-[#b8a9a0]">
+                <span className="mb-1 block text-[10px] font-medium text-[#b8b3ba]">
                   {setDraft.category === "Farmer carries" ? "Weight · kg / kettlebell" : "Weight · kg"}
                 </span>
                 <input
@@ -372,7 +372,7 @@ export default function WorkoutPlanBuilder() {
                   step="0.1"
                   value={setDraft.weight}
                   onChange={(event) => setSetDraft((current) => ({ ...current, weight: event.target.value }))}
-                  className="h-10 w-full rounded-lg border border-white/10 bg-[#292522] px-2 text-xs text-[#f6efea] outline-none focus:border-[#8b5b40]"
+                  className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs text-[#f3f2f4] outline-none focus:border-[#91576a]"
                 />
               </label>
             )}
@@ -389,7 +389,7 @@ export default function WorkoutPlanBuilder() {
             <button
               type="button"
               onClick={saveSet}
-              className="h-10 rounded-lg border border-[#664332] bg-[#342a25] px-3 text-xs font-semibold text-[#ffb17e] hover:bg-[#45342b]"
+              className="h-10 rounded-lg border border-[#67414e] bg-[#30282d] px-3 text-xs font-semibold text-[#ffb0bd] hover:bg-[#41343b]"
             >
               {editingSetId ? "Update set" : "Add set"}
             </button>
@@ -397,14 +397,14 @@ export default function WorkoutPlanBuilder() {
 
           <div className="mt-4 space-y-2">
             {sets.map((set, index) => (
-              <div key={set.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 bg-[#292522] px-3 py-2">
-                <span className="text-xs font-medium text-[#e7dcd5]">
+              <div key={set.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-white/10 bg-[#27272b] px-3 py-2">
+                <span className="text-xs font-medium text-[#e2e0e3]">
                   {index + 1}. {set.category} · {set.amount} {set.unit}
                   {set.weightKg !== undefined ? ` · ${set.weightKg} kg${set.category === "Farmer carries" ? " / kettlebell" : ""}` : ""}
                   {" · "}{formatTime(set.timeSeconds)} time · {formatTime(set.restSeconds)} rest
                 </span>
                 <span className="flex gap-2">
-                  <button type="button" onClick={() => editSet(set)} className="text-xs font-semibold text-[#ffb17e] hover:underline">Edit set</button>
+                  <button type="button" onClick={() => editSet(set)} className="text-xs font-semibold text-[#ffb0bd] hover:underline">Edit set</button>
                   <button
                     type="button"
                     onClick={() => {
@@ -421,40 +421,40 @@ export default function WorkoutPlanBuilder() {
                 </span>
               </div>
             ))}
-            {sets.length === 0 && <p className="rounded-lg border border-dashed border-white/10 px-3 py-4 text-center text-xs text-[#a99b93]">Add sets to your plan above.</p>}
+            {sets.length === 0 && <p className="rounded-lg border border-dashed border-white/10 px-3 py-4 text-center text-xs text-[#aaa5ad]">Add sets to your plan above.</p>}
           </div>
 
           <div className="mt-4 flex justify-end gap-2">
             {editingPlanId !== null && (
-              <button type="button" onClick={resetEditor} className="rounded-lg border border-white/10 bg-[#292522] px-3 py-2 text-xs font-semibold text-[#d1c1b8] hover:bg-[#302b28]">
+              <button type="button" onClick={resetEditor} className="rounded-lg border border-white/10 bg-[#27272b] px-3 py-2 text-xs font-semibold text-[#cbc7cd] hover:bg-[#303034]">
                 Cancel
               </button>
             )}
-            <button type="submit" disabled={isSaving} className="rounded-lg bg-[#f47f3e] px-4 py-2 text-xs font-semibold text-[#28160e] hover:bg-[#ff9a59] disabled:opacity-50">
+            <button type="submit" disabled={isSaving} className="rounded-lg bg-[#f16b84] px-4 py-2 text-xs font-semibold text-[#290f18] hover:bg-[#ff91a5] disabled:opacity-50">
               {isSaving ? "Saving..." : editingPlanId ? "Save changes" : "Save plan"}
             </button>
           </div>
         </form>
       )}
 
-      {isLoading && <p role="status" className="py-4 text-sm text-[#a99b93]">Loading plans...</p>}
+      {isLoading && <p role="status" className="py-4 text-sm text-[#aaa5ad]">Loading plans...</p>}
       {!isLoading && plans?.length === 0 && editingPlanId === null && !isCreating && (
-        <p className="rounded-xl border border-dashed border-white/10 px-4 py-6 text-center text-sm text-[#a99b93]">
+        <p className="rounded-xl border border-dashed border-white/10 px-4 py-6 text-center text-sm text-[#aaa5ad]">
           No plans yet. Start building your first plan above.
         </p>
       )}
       <div className="space-y-3">
         {plans?.map((plan) => (
-          <article key={plan.id} className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-white/10 bg-[#262220] p-3 sm:p-4">
+          <article key={plan.id} className="flex flex-wrap items-start justify-between gap-3 rounded-xl border border-white/10 bg-[#242427] p-3 sm:p-4">
             <div className="min-w-0 flex-1">
-              <h3 className="font-semibold text-[#f6efea]">{plan.name}</h3>
-              <p className="mt-1 text-xs text-[#b8a9a0]">{plan.sets.length} {plan.sets.length === 1 ? "set" : "sets"}</p>
-              <p className="mt-2 text-xs leading-relaxed text-[#b8a9a0]">
+              <h3 className="font-semibold text-[#f3f2f4]">{plan.name}</h3>
+              <p className="mt-1 text-xs text-[#b8b3ba]">{plan.sets.length} {plan.sets.length === 1 ? "set" : "sets"}</p>
+              <p className="mt-2 text-xs leading-relaxed text-[#b8b3ba]">
                 {plan.sets.map((set) => set.category).join(" · ")}
               </p>
             </div>
             <div className="flex shrink-0 gap-1.5">
-              <button type="button" onClick={() => editPlan(plan)} className="rounded-lg border border-[#664332] bg-[#342a25] px-2.5 py-1.5 text-xs font-semibold text-[#ffb17e] hover:bg-[#45342b]">
+              <button type="button" onClick={() => editPlan(plan)} className="rounded-lg border border-[#67414e] bg-[#30282d] px-2.5 py-1.5 text-xs font-semibold text-[#ffb0bd] hover:bg-[#41343b]">
                 Edit
               </button>
               <button type="button" onClick={() => void removePlan(plan)} className="rounded-lg border border-[#714342] bg-[#3d2425] px-2.5 py-1.5 text-xs font-semibold text-[#ffaaa5] hover:bg-[#4a292a]">

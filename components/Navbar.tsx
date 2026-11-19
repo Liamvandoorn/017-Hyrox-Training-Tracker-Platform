@@ -40,14 +40,14 @@ export default function Navbar() {
 
   return (
     <>
-      <nav aria-label="Main navigation" className="fixed bottom-[max(12px,env(safe-area-inset-bottom))] left-1/2 z-50 w-[calc(100%-24px)] max-w-[420px] -translate-x-1/2 rounded-[1.75rem] border border-white/10 bg-[#171514]/95 p-2 shadow-[0_16px_45px_rgba(0,0,0,0.4)] backdrop-blur-xl">
+      <nav aria-label="Main navigation" className="fixed bottom-[max(12px,env(safe-area-inset-bottom))] left-1/2 z-50 w-[calc(100%-24px)] max-w-[420px] -translate-x-1/2 rounded-[1.75rem] border border-white/10 bg-[#171719]/95 p-2 shadow-[0_16px_45px_rgba(0,0,0,0.4)] backdrop-blur-xl">
         <div className="grid grid-cols-3 gap-1">
           {items.map((item) => {
             const active = pathname === item.href;
             const className = `flex min-h-[54px] flex-col items-center justify-center gap-1 rounded-[1.15rem] transition-colors ${
               active || (item.href === "/workout" && isWorkoutSheetOpen)
-                ? "bg-[#f47f3e] text-[#28160e] shadow-[0_5px_20px_rgba(244,127,62,0.26)]"
-                : "text-[#b8a9a0] hover:bg-[#302b28] hover:text-[#f6efea]"
+                ? "bg-[#f16b84] text-[#290f18] shadow-[0_5px_20px_rgba(241,107,132,0.26)]"
+                : "text-[#b8b3ba] hover:bg-[#303034] hover:text-[#f3f2f4]"
             }`;
 
             return item.href === "/workout" ? (

@@ -381,11 +381,11 @@ export default function Dashboard() {
       <div className="mx-auto max-w-[760px] space-y-4 sm:space-y-5">
         <header className="flex items-center justify-between px-1 pb-1">
           <div>
-            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#f4a06b]">HYROX · TRAINING LOG</p>
-            <h1 className="mt-1 text-[23px] font-semibold tracking-[-0.04em] text-[#edf3f8] sm:text-[28px]">
+            <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#f69aaa]">HYROX · TRAINING LOG</p>
+            <h1 className="mt-1 text-[23px] font-semibold tracking-[-0.04em] text-[#f2eff2] sm:text-[28px]">
               Welcome back Marta!
             </h1>
-            <p className="mt-0.5 text-xs text-[#a99b93] sm:text-sm">
+            <p className="mt-0.5 text-xs text-[#aaa5ad] sm:text-sm">
               {selectedDate.toLocaleDateString("en", { weekday: "long", month: "long", day: "numeric" })}
             </p>
           </div>
@@ -393,7 +393,7 @@ export default function Dashboard() {
             type="button"
             onClick={signOut}
             aria-label="Sign out"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[#292320] text-[#b8a9a0] shadow-sm transition hover:bg-[#292522] hover:text-[#f6efea]"
+            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[#28282c] text-[#b8b3ba] shadow-sm transition hover:bg-[#27272b] hover:text-[#f3f2f4]"
           >
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]" aria-hidden="true">
               <path d="M10 17l5-5-5-5M15 12H3" />
@@ -410,7 +410,7 @@ export default function Dashboard() {
           }}
         />
 
-        <section className="grid grid-cols-[minmax(0,1.45fr)_minmax(102px,0.82fr)] gap-3 rounded-[1.7rem] border border-white/10 bg-[#201d1c] p-3.5 shadow-[0_14px_38px_rgba(47,68,85,0.08)] sm:gap-5 sm:rounded-[2rem] sm:p-5">
+        <section className="grid grid-cols-[minmax(0,1.45fr)_minmax(102px,0.82fr)] gap-3 rounded-[1.7rem] border border-white/10 bg-[#1c1c1f] p-3.5 shadow-[0_14px_38px_rgba(47,68,85,0.08)] sm:gap-5 sm:rounded-[2rem] sm:p-5">
           <BestTimesBox
             times={bestExerciseResults.times}
             status={workoutsError ?? (workouts === null ? "Loading workout data..." : undefined)}
@@ -429,7 +429,7 @@ export default function Dashboard() {
             {runningTrend.hasData ? (
               <SimpleChart data={runningTrend.data} labels={runningTrend.labels} color="blue" unit="km" description="Weekly running distance in kilometers" />
             ) : (
-              <p role={workoutsError ? "alert" : "status"} className="flex h-full items-center justify-center px-1 text-center text-[10px] leading-relaxed text-[#a99b93]">
+              <p role={workoutsError ? "alert" : "status"} className="flex h-full items-center justify-center px-1 text-center text-[10px] leading-relaxed text-[#aaa5ad]">
                 {runningMessage}
               </p>
             )}
@@ -451,7 +451,7 @@ export default function Dashboard() {
                 description="Completed workout set time"
               />
             ) : (
-              <p role={workoutsError ? "alert" : "status"} className="flex h-full items-center justify-center px-1 text-center text-[10px] leading-relaxed text-[#a99b93]">
+              <p role={workoutsError ? "alert" : "status"} className="flex h-full items-center justify-center px-1 text-center text-[10px] leading-relaxed text-[#aaa5ad]">
                 {simulationMessage}
               </p>
             )}
@@ -462,8 +462,8 @@ export default function Dashboard() {
 
         <section aria-labelledby="exercise-trends-heading" className="space-y-3">
           <div className="px-1">
-            <h2 id="exercise-trends-heading" className="text-base font-semibold text-[#edf3f8]">Exercise time trends</h2>
-            <p className="mt-1 text-xs text-[#a99b93]">
+            <h2 id="exercise-trends-heading" className="text-base font-semibold text-[#f2eff2]">Exercise time trends</h2>
+            <p className="mt-1 text-xs text-[#aaa5ad]">
               Fastest completed set per day, excluding rest. Distance, reps and weight can vary between sets.
             </p>
           </div>
@@ -478,7 +478,7 @@ export default function Dashboard() {
                     description={`${category} fastest set per day`}
                   />
                 ) : (
-                  <p role={workoutsError ? "alert" : "status"} className="flex h-full items-center justify-center px-1 text-center text-[10px] leading-relaxed text-[#a99b93]">
+                  <p role={workoutsError ? "alert" : "status"} className="flex h-full items-center justify-center px-1 text-center text-[10px] leading-relaxed text-[#aaa5ad]">
                     {workoutsError ?? (workouts === null ? "Loading saved workouts..." : "No completed timed sets yet.")}
                   </p>
                 )}
@@ -498,7 +498,7 @@ export default function Dashboard() {
                 description="Best running average pace per 1,000 meters"
               />
             ) : (
-              <p role={workoutsError ? "alert" : "status"} className="flex h-full items-center justify-center px-1 text-center text-[10px] leading-relaxed text-[#a99b93]">
+              <p role={workoutsError ? "alert" : "status"} className="flex h-full items-center justify-center px-1 text-center text-[10px] leading-relaxed text-[#aaa5ad]">
                 {workoutsError ?? (workouts === null ? "Loading saved workouts..." : "No completed timed runs yet.")}
               </p>
             )}
@@ -513,7 +513,7 @@ export default function Dashboard() {
                 description="Saved workouts per week"
               />
             ) : (
-              <p role={workoutsError ? "alert" : "status"} className="flex h-full items-center justify-center px-1 text-center text-[10px] leading-relaxed text-[#a99b93]">
+              <p role={workoutsError ? "alert" : "status"} className="flex h-full items-center justify-center px-1 text-center text-[10px] leading-relaxed text-[#aaa5ad]">
                 {workoutsError ?? (workouts === null ? "Loading saved workouts..." : "No workouts in the last 7 weeks.")}
               </p>
             )}
