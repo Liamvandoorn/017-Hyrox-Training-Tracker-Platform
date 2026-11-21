@@ -19,6 +19,12 @@ interface RestTimer {
   endsAt: number;
 }
 
+const MAX_SET_TIMER_SECONDS = 999 * 60 + 59;
+
+function elapsedSetSeconds(startedAt: number) {
+  return Math.min(MAX_SET_TIMER_SECONDS, Math.floor((Date.now() - startedAt) / 1000));
+}
+
 function localDateValue() {
   const date = new Date();
   const localDate = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
@@ -77,9 +83,10 @@ interface TimeInputProps {
   onBlur?: React.FocusEventHandler<HTMLDivElement>;
   onKeyDown?: React.KeyboardEventHandler<HTMLDivElement>;
   className?: string;
+  disabled?: boolean;
 }
 
-function TimeInput({ label, value, onChange, autoFocus, onBlur, onKeyDown, className }: TimeInputProps) {
+function TimeInput({ label, value, onChange, autoFocus, onBlur, onKeyDown, className, disabled }: TimeInputProps) {
   const [minutes = "", seconds = ""] = value.split(":");
 
   return (
@@ -96,6 +103,7 @@ function TimeInput({ label, value, onChange, autoFocus, onBlur, onKeyDown, class
         pattern="[0-9]*"
         maxLength={3}
         autoFocus={autoFocus}
+        disabled={disabled}
         onFocus={(event) => {
           if (autoFocus) event.currentTarget.select();
         }}
@@ -112,6 +120,7 @@ function TimeInput({ label, value, onChange, autoFocus, onBlur, onKeyDown, class
         inputMode="numeric"
         pattern="[0-9]*"
         maxLength={2}
+        disabled={disabled}
         value={seconds}
         onChange={(event) =>
           onChange(`${minutes}:${event.target.value.replace(/\D/g, "").slice(0, 2)}`)
@@ -249,6 +258,27 @@ export default function WorkoutPage() {
   const [showStartSheet, setShowStartSheet] = useState(true);
   const [restTimer, setRestTimer] = useState<RestTimer | null>(null);
   const [restRemaining, setRestRemaining] = useState(0);
+  const [setTimerStartedAt, setSetTimerStartedAt] = useState<number | null>(null);
+
+  useEffect(() => {
+    if (setTimerStartedAt === null) return;
+
+    const updateTime = () => {
+      const elapsed = elapsedSetSeconds(setTimerStartedAt);
+      setTime(formatTime(elapsed));
+      if (elapsed === MAX_SET_TIMER_SECONDS) {
+        setSetTimerStartedAt(null);
+        setError("Set timer stopped at the maximum time of 999:59.");
+      }
+    };
+    updateTime();
+    const interval = window.setInterval(updateTime, 250);
+    document.addEventListener("visibilitychange", updateTime);
+    return () => {
+      window.clearInterval(interval);
+      document.removeEventListener("visibilitychange", updateTime);
+    };
+  }, [setTimerStartedAt]);
 
   useEffect(() => {
     if (!restTimer) return;
@@ -299,6 +329,7 @@ export default function WorkoutPage() {
 
   const startOwnWorkout = useCallback(() => {
     setRestTimer(null);
+    setSetTimerStartedAt(null);
     setShowStartSheet(false);
     setSource("own");
     setWorkoutName("My workout");
@@ -313,6 +344,7 @@ export default function WorkoutPage() {
 
   const startPlannedWorkout = (plan: WorkoutPlan) => {
     setRestTimer(null);
+    setSetTimerStartedAt(null);
     setShowStartSheet(false);
     setSource("plan");
     setWorkoutName(plan.name);
@@ -335,7 +367,9 @@ export default function WorkoutPage() {
     setError("");
     const numericAmount = Number(amount);
     const numericWeight = Number(weight);
-    const timeSeconds = parseTime(time);
+    const timeSeconds = setTimerStartedAt === null
+      ? parseTime(time)
+      : elapsedSetSeconds(setTimerStartedAt);
     const restSeconds = parseTime(restTime);
     if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
       setError("Enter a distance, weight, or rep count greater than zero.");
@@ -365,6 +399,10 @@ export default function WorkoutPage() {
       return;
     }
 
+    if (setTimerStartedAt !== null) {
+      setTime(formatTime(timeSeconds));
+      setSetTimerStartedAt(null);
+    }
     setSets((current) => [
       ...current,
       {
@@ -447,6 +485,10 @@ export default function WorkoutPage() {
   };
 
   const finishWorkout = async () => {
+    if (setTimerStartedAt !== null) {
+      setError("Stop the set timer and add the timed set before finishing.");
+      return;
+    }
     if (sets.length === 0 || !date) {
       setError("Add at least one set and choose a workout date.");
       return;
@@ -487,6 +529,7 @@ export default function WorkoutPage() {
 
   const resetWorkout = () => {
     setRestTimer(null);
+    setSetTimerStartedAt(null);
     setSets([]);
     setError("");
     setPendingFlow(null);
@@ -527,7 +570,7 @@ export default function WorkoutPage() {
       if (flow !== "own" && flow !== "plan") return;
       sessionStorage.removeItem("hyrox_workout_flow");
 
-      if (mode === "workout" && sets.length > 0) {
+      if (mode === "workout" && (sets.length > 0 || setTimerStartedAt !== null)) {
         setPendingFlow(flow);
         setShowAbortConfirmation(true);
         return;
@@ -548,11 +591,12 @@ export default function WorkoutPage() {
       window.removeEventListener("hyrox-workout-flow", handleWorkoutFlow);
       window.removeEventListener("hyrox-open-workout-sheet", handleOpenWorkoutSheet);
     };
-  }, [mode, sets, startOwnWorkout]);
+  }, [mode, sets, setTimerStartedAt, startOwnWorkout]);
 
   const abortWorkout = () => {
     setShowAbortConfirmation(false);
     setRestTimer(null);
+    setSetTimerStartedAt(null);
     setSets([]);
     setError("");
     setIsEditingName(false);
@@ -609,7 +653,7 @@ export default function WorkoutPage() {
   }, [mode]);
 
   return (
-    <main className={`min-h-screen px-3 pt-5 sm:px-5 sm:pt-8 ${mode === "workout" ? "pb-[310px]" : "pb-28"}`}>
+    <main className={`min-h-screen px-3 pt-5 sm:px-5 sm:pt-8 ${mode === "workout" ? "pb-[350px]" : "pb-28"}`}>
       <div className="mx-auto max-w-[680px]">
         <header className="mb-5 flex items-start justify-between gap-3 px-1">
           <div>
@@ -893,7 +937,7 @@ export default function WorkoutPage() {
           }}
           onSelect={(flow) => {
             setShowStartSheet(false);
-            if (mode === "workout" && sets.length > 0) {
+            if (mode === "workout" && (sets.length > 0 || setTimerStartedAt !== null)) {
               setPendingFlow(flow);
               setShowAbortConfirmation(true);
             } else if (flow === "own") {
@@ -1085,22 +1129,23 @@ export default function WorkoutPage() {
                 />
               </label>
             )}
-            <label className="min-w-0">
+            <div className="min-w-0">
               <span className="mb-1 block text-[8px] font-bold uppercase tracking-wide text-[#aaa5ad]">Time</span>
               <TimeInput
                 label="Set time"
                 value={time}
                 onChange={setTime}
+                disabled={setTimerStartedAt !== null}
               />
-            </label>
-            <label className="min-w-0">
+            </div>
+            <div className="min-w-0">
               <span className="mb-1 block text-[8px] font-bold uppercase tracking-wide text-[#aaa5ad]">Rest</span>
               <TimeInput
                 label="Rest time"
                 value={restTime}
                 onChange={setRestTime}
               />
-            </label>
+            </div>
             <button
               type="button"
               onClick={addSet}
@@ -1110,6 +1155,22 @@ export default function WorkoutPage() {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="h-5 w-5" aria-hidden="true">
                 <path d="M12 5v14M5 12h14" />
               </svg>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (setTimerStartedAt === null) {
+                  setError("");
+                  setTime("00:00");
+                  setSetTimerStartedAt(Date.now());
+                } else {
+                  setTime(formatTime(elapsedSetSeconds(setTimerStartedAt)));
+                  setSetTimerStartedAt(null);
+                }
+              }}
+              className={`col-span-2 ${requiresWeight(category) ? "col-start-3" : "col-start-2"} justify-self-start rounded-lg bg-[#303034] px-3 py-2 text-[10px] font-semibold text-[#f3f2f4] hover:bg-[#404045]`}
+            >
+              {setTimerStartedAt === null ? "Start timer" : "Stop timer"}
             </button>
           </div>
         </section>
