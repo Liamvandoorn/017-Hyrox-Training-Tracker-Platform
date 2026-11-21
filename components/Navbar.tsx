@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useState } from "react";
 import WorkoutStartSheet, { WorkoutFlow } from "@/components/WorkoutStartSheet";
+import { WORKOUT_DRAFT_KEY } from "@/lib/types";
 
 const items = [
   {
@@ -60,7 +61,16 @@ export default function Navbar() {
                   if (pathname === "/workout") {
                     window.dispatchEvent(new Event("hyrox-open-workout-sheet"));
                   } else {
-                    setIsWorkoutSheetOpen((open) => !open);
+                    try {
+                      if (sessionStorage.getItem(WORKOUT_DRAFT_KEY) !== null) {
+                        router.push("/workout");
+                        return;
+                      }
+                      setIsWorkoutSheetOpen((open) => !open);
+                    } catch (error) {
+                      console.error("Could not check for an in-progress workout:", error);
+                      router.push("/workout");
+                    }
                   }
                 }}
                 className={className}

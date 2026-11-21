@@ -8,6 +8,7 @@ import {
   getWorkoutSetUnit,
   requiresWeight,
   WORKOUT_CATEGORIES,
+  WORKOUT_DRAFT_KEY,
 } from "@/lib/types";
 import type { WorkoutPlan, WorkoutSet, WorkoutSetUnit, WorkoutSource } from "@/lib/types";
 
@@ -17,6 +18,21 @@ interface RestTimer {
   setId: string;
   durationSeconds: number;
   endsAt: number;
+}
+
+interface WorkoutDraft {
+  version: 1;
+  source: WorkoutSource;
+  workoutName: string;
+  date: string;
+  sets: WorkoutSet[];
+  category: string;
+  amount: string;
+  weight: string;
+  time: string;
+  restTime: string;
+  restTimer: RestTimer | null;
+  setTimerStartedAt: number | null;
 }
 
 const MAX_SET_TIMER_SECONDS = 999 * 60 + 59;
@@ -47,31 +63,64 @@ function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function isWorkoutSet(set: unknown): set is WorkoutSet {
+  return (
+    isRecord(set) &&
+    typeof set.id === "string" &&
+    typeof set.category === "string" &&
+    typeof set.amount === "number" &&
+    Number.isFinite(set.amount) &&
+    set.amount > 0 &&
+    (set.unit === "m" || set.unit === "kg" || set.unit === "reps") &&
+    (set.weightKg === undefined ||
+      (typeof set.weightKg === "number" && Number.isFinite(set.weightKg))) &&
+    typeof set.timeSeconds === "number" &&
+    Number.isInteger(set.timeSeconds) &&
+    typeof set.restSeconds === "number" &&
+    Number.isInteger(set.restSeconds) &&
+    typeof set.completed === "boolean"
+  );
+}
+
 function isWorkoutPlan(value: unknown): value is WorkoutPlan {
   return (
     isRecord(value) &&
     typeof value.id === "number" &&
     typeof value.name === "string" &&
     Array.isArray(value.sets) &&
-    value.sets.every(
-      (set) =>
-        isRecord(set) &&
-        typeof set.id === "string" &&
-        typeof set.category === "string" &&
-        typeof set.amount === "number" &&
-        Number.isFinite(set.amount) &&
-        set.amount > 0 &&
-        (set.unit === "m" || set.unit === "kg" || set.unit === "reps") &&
-        (set.weightKg === undefined ||
-          (typeof set.weightKg === "number" && Number.isFinite(set.weightKg))) &&
-        typeof set.timeSeconds === "number" &&
-        Number.isInteger(set.timeSeconds) &&
-        typeof set.restSeconds === "number" &&
-        Number.isInteger(set.restSeconds) &&
-        typeof set.completed === "boolean"
-    ) &&
+    value.sets.every(isWorkoutSet) &&
     typeof value.created_at === "string" &&
     typeof value.updated_at === "string"
+  );
+}
+
+function isWorkoutDraft(value: unknown): value is WorkoutDraft {
+  if (!isRecord(value)) return false;
+  const timer = value.restTimer;
+  return (
+    value.version === 1 &&
+    (value.source === "own" || value.source === "plan") &&
+    typeof value.workoutName === "string" &&
+    typeof value.date === "string" &&
+    Array.isArray(value.sets) &&
+    value.sets.every(isWorkoutSet) &&
+    typeof value.category === "string" &&
+    typeof value.amount === "string" &&
+    typeof value.weight === "string" &&
+    typeof value.time === "string" &&
+    typeof value.restTime === "string" &&
+    (timer === null ||
+      (isRecord(timer) &&
+        typeof timer.setId === "string" &&
+        value.sets.some((set) => set.id === timer.setId) &&
+        typeof timer.durationSeconds === "number" &&
+        Number.isFinite(timer.durationSeconds) &&
+        timer.durationSeconds > 0 &&
+        typeof timer.endsAt === "number" &&
+        Number.isFinite(timer.endsAt))) &&
+    (value.setTimerStartedAt === null ||
+      (typeof value.setTimerStartedAt === "number" &&
+        Number.isFinite(value.setTimerStartedAt)))
   );
 }
 
@@ -260,6 +309,72 @@ export default function WorkoutPage() {
   const [restRemaining, setRestRemaining] = useState(0);
   const [setTimerStartedAt, setSetTimerStartedAt] = useState<number | null>(null);
   const [setTimerElapsed, setSetTimerElapsed] = useState(0);
+  const [draftReady, setDraftReady] = useState(false);
+  const [canSaveDraft, setCanSaveDraft] = useState(true);
+  const [draftError, setDraftError] = useState("");
+
+  useEffect(() => {
+    try {
+      const saved = sessionStorage.getItem(WORKOUT_DRAFT_KEY);
+      if (saved !== null) {
+        const draft: unknown = JSON.parse(saved);
+        if (!isWorkoutDraft(draft)) throw new Error("Invalid workout draft");
+        setSource(draft.source);
+        setWorkoutName(draft.workoutName);
+        setNameDraft(draft.workoutName);
+        setDate(draft.date);
+        setSets(draft.sets);
+        setCategory(draft.category);
+        setAmount(draft.amount);
+        setWeight(draft.weight);
+        setTime(draft.time);
+        setRestTime(draft.restTime);
+        setRestTimer(draft.restTimer);
+        setSetTimerStartedAt(draft.setTimerStartedAt);
+        setShowStartSheet(false);
+        setMode("workout");
+      }
+    } catch (restoreError) {
+      console.error("Could not restore workout draft:", restoreError);
+      setCanSaveDraft(false);
+      setDraftError("Could not restore your saved workout. Workout persistence is unavailable in this tab.");
+    }
+    setDraftReady(true);
+  }, []);
+
+  useEffect(() => {
+    if (!draftReady || !canSaveDraft || mode !== "workout") return;
+    const draft: WorkoutDraft = {
+      version: 1,
+      source,
+      workoutName,
+      date,
+      sets,
+      category,
+      amount,
+      weight,
+      time,
+      restTime,
+      restTimer,
+      setTimerStartedAt,
+    };
+    try {
+      sessionStorage.setItem(WORKOUT_DRAFT_KEY, JSON.stringify(draft));
+      setDraftError("");
+    } catch (saveError) {
+      console.error("Could not save workout draft:", saveError);
+      setDraftError("Could not save your in-progress workout in this tab. It may be lost if you leave.");
+    }
+  }, [draftReady, canSaveDraft, mode, source, workoutName, date, sets, category, amount, weight, time, restTime, restTimer, setTimerStartedAt]);
+
+  const clearWorkoutDraft = () => {
+    try {
+      sessionStorage.removeItem(WORKOUT_DRAFT_KEY);
+    } catch (clearError) {
+      console.error("Could not clear workout draft:", clearError);
+      setDraftError("Could not clear the saved workout in this tab.");
+    }
+  };
 
   useEffect(() => {
     if (setTimerStartedAt === null) return;
@@ -519,6 +634,7 @@ export default function WorkoutPage() {
       if (!response.ok) {
         throw new Error(result.error || "Could not save your workout.");
       }
+      clearWorkoutDraft();
       setSets(completedSets);
       setRestTimer(null);
       setMode("finished");
@@ -566,13 +682,14 @@ export default function WorkoutPage() {
   }, {});
 
   useEffect(() => {
+    if (!draftReady) return;
     const handleOpenWorkoutSheet = () => setShowStartSheet(true);
     const handleWorkoutFlow = () => {
       const flow = sessionStorage.getItem("hyrox_workout_flow");
       if (flow !== "own" && flow !== "plan") return;
       sessionStorage.removeItem("hyrox_workout_flow");
 
-      if (mode === "workout" && (sets.length > 0 || setTimerStartedAt !== null)) {
+      if (mode === "workout") {
         setPendingFlow(flow);
         setShowAbortConfirmation(true);
         return;
@@ -593,9 +710,10 @@ export default function WorkoutPage() {
       window.removeEventListener("hyrox-workout-flow", handleWorkoutFlow);
       window.removeEventListener("hyrox-open-workout-sheet", handleOpenWorkoutSheet);
     };
-  }, [mode, sets, setTimerStartedAt, startOwnWorkout]);
+  }, [draftReady, mode, startOwnWorkout]);
 
   const abortWorkout = () => {
+    clearWorkoutDraft();
     setShowAbortConfirmation(false);
     setRestTimer(null);
     setSetTimerStartedAt(null);
@@ -654,6 +772,10 @@ export default function WorkoutPage() {
     };
   }, [mode]);
 
+  if (!draftReady) {
+    return <main className="min-h-screen" aria-label="Loading workout" />;
+  }
+
   return (
     <main className={`min-h-screen px-3 pt-5 sm:px-5 sm:pt-8 ${mode === "workout" ? "pb-[350px]" : "pb-28"}`}>
       <div className="mx-auto max-w-[680px]">
@@ -693,6 +815,11 @@ export default function WorkoutPage() {
           )}
         </header>
 
+        {draftError && (
+          <div role="alert" className="mb-4 rounded-xl border border-[#714342] bg-[#3d2425] px-4 py-3 text-sm text-[#ffa8a4]">
+            {draftError}
+          </div>
+        )}
         {error && (
           <div role="alert" className="mb-4 rounded-xl border border-[#714342] bg-[#3d2425] px-4 py-3 text-sm text-[#ffa8a4]">
             {error}
@@ -939,7 +1066,7 @@ export default function WorkoutPage() {
           }}
           onSelect={(flow) => {
             setShowStartSheet(false);
-            if (mode === "workout" && (sets.length > 0 || setTimerStartedAt !== null)) {
+            if (mode === "workout") {
               setPendingFlow(flow);
               setShowAbortConfirmation(true);
             } else if (flow === "own") {

@@ -12,6 +12,8 @@ export interface TrainingSession {
 export type WorkoutSource = "own" | "plan";
 export type WorkoutSetUnit = "m" | "kg" | "reps";
 
+export const WORKOUT_DRAFT_KEY = "hyrox_workout_draft";
+
 export const WORKOUT_CATEGORIES = [
   "Running",
   "SkiErg",
