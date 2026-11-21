@@ -259,14 +259,16 @@ export default function WorkoutPage() {
   const [restTimer, setRestTimer] = useState<RestTimer | null>(null);
   const [restRemaining, setRestRemaining] = useState(0);
   const [setTimerStartedAt, setSetTimerStartedAt] = useState<number | null>(null);
+  const [setTimerElapsed, setSetTimerElapsed] = useState(0);
 
   useEffect(() => {
     if (setTimerStartedAt === null) return;
 
     const updateTime = () => {
       const elapsed = elapsedSetSeconds(setTimerStartedAt);
-      setTime(formatTime(elapsed));
+      setSetTimerElapsed(elapsed);
       if (elapsed === MAX_SET_TIMER_SECONDS) {
+        setTime(formatTime(elapsed));
         setSetTimerStartedAt(null);
         setError("Set timer stopped at the maximum time of 999:59.");
       }
@@ -1161,7 +1163,7 @@ export default function WorkoutPage() {
               onClick={() => {
                 if (setTimerStartedAt === null) {
                   setError("");
-                  setTime("00:00");
+                  setSetTimerElapsed(0);
                   setSetTimerStartedAt(Date.now());
                 } else {
                   setTime(formatTime(elapsedSetSeconds(setTimerStartedAt)));
@@ -1170,7 +1172,7 @@ export default function WorkoutPage() {
               }}
               className={`col-span-2 ${requiresWeight(category) ? "col-start-3" : "col-start-2"} justify-self-start rounded-lg bg-[#303034] px-3 py-2 text-[10px] font-semibold text-[#f3f2f4] hover:bg-[#404045]`}
             >
-              {setTimerStartedAt === null ? "Start timer" : "Stop timer"}
+              {setTimerStartedAt === null ? "Time" : `Stop · ${formatTime(setTimerElapsed)}`}
             </button>
           </div>
         </section>
