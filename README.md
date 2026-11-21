@@ -72,7 +72,7 @@ Open [http://localhost:3000](http://localhost:3000) and enter the passcode to ac
 1. **Unlock** - Enter the passcode to access the app
 2. **Log Workout** - Choose Follow plan or Log own workout from the slide-up menu above the navigation
 3. **Build sets** - Use the docked composer to enter distance, weight, or reps; sled pushes/pulls, sandbag lunges, and farmer carries take both distance and weight (farmer carry weight is per kettlebell), while wall balls include a weight field. Enter time and rest manually, or tap **Time** to start a stopwatch and tap again to insert the elapsed time. Adding a set while timing uses the current elapsed time.
-4. **Complete or abort** - Tap each numbered circle as you finish a set to start its rest countdown; finish to save a recap or abort after confirming. Skip rest if needed. An in-progress workout is saved in the current browser tab, so you can return to it after visiting the dashboard or settings, or refreshing the page. It is cleared when you finish or abort.
+4. **Complete or abort** - Tap each numbered circle as you finish a set to start its rest countdown; finish to save a recap or abort after confirming. Skip rest if needed. Dashboard and Settings navigation is disabled during a workout. The in-progress workout is also saved in the current browser tab and restored if you refresh or leave the page; it is cleared when you finish or abort.
 5. **Build a plan** - Create and edit reusable workout plans in Settings. Choose Follow plan to import a saved plan into a new workout.
 
 ## HYROX Best-Time Eligibility

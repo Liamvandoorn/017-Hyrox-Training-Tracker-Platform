@@ -1304,7 +1304,7 @@ export default function WorkoutPage() {
           </div>
         </section>
       )}
-      <Navbar />
+      <Navbar workoutInProgress={mode === "workout"} />
     </main>
   );
 }
