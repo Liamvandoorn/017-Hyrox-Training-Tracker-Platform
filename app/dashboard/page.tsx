@@ -7,6 +7,7 @@ import BestTimesBox, { type BestTimeKey, type BestTimes } from "@/components/Bes
 import ChartContainer from "@/components/ChartContainer";
 import DayCarousel from "@/components/DayCarousel";
 import DayWorkoutPreview from "@/components/DayWorkoutPreview";
+import FriendProfileCard from "@/components/FriendProfileCard";
 import Navbar from "@/components/Navbar";
 import ProfileAvatar from "@/components/ProfileAvatar";
 import SimpleChart from "@/components/SimpleChart";
@@ -282,6 +283,8 @@ export default function Dashboard() {
   const [workoutsError, setWorkoutsError] = useState<string | null>(null);
   const [friendsWithWorkouts, setFriendsWithWorkouts] = useState<Record<string, number[]>>({});
   const [showDayPreview, setShowDayPreview] = useState(false);
+  const [friendProfileUserId, setFriendProfileUserId] = useState<number | null>(null);
+  const [friendProfileDisplayName, setFriendProfileDisplayName] = useState<string>("");
   const [authError, setAuthError] = useState("");
   const { user } = useAuth();
 
@@ -642,6 +645,20 @@ export default function Dashboard() {
           workouts={selectedWorkouts}
           error={workoutsError}
           onClose={() => setShowDayPreview(false)}
+          onViewFriendProfile={(userId, displayName) => {
+            setFriendProfileUserId(userId);
+            setFriendProfileDisplayName(displayName);
+          }}
+        />
+      )}
+      {friendProfileUserId !== null && (
+        <FriendProfileCard
+          userId={friendProfileUserId}
+          displayName={friendProfileDisplayName}
+          onClose={() => {
+            setFriendProfileUserId(null);
+            setFriendProfileDisplayName("");
+          }}
         />
       )}
     </main>

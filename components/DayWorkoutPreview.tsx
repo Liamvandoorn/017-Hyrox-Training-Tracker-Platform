@@ -16,6 +16,7 @@ interface DayWorkoutPreviewProps {
   workouts: WorkoutRecord[] | null;
   error: string | null;
   onClose: () => void;
+  onViewFriendProfile?: (userId: number, displayName: string) => void;
 }
 
 function formatDuration(seconds: number): string {
@@ -46,8 +47,10 @@ export default function DayWorkoutPreview({
   workouts,
   error,
   onClose,
+  onViewFriendProfile,
 }: DayWorkoutPreviewProps) {
   const [friendsWorkouts, setFriendsWorkouts] = useState<FriendWorkoutData[]>([]);
+  const [expandedWorkoutIds, setExpandedWorkoutIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -76,6 +79,18 @@ export default function DayWorkoutPreview({
 
     void loadFriendsWorkouts();
   }, [date]);
+
+  const toggleWorkoutExpanded = (workoutId: number) => {
+    setExpandedWorkoutIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(workoutId)) {
+        next.delete(workoutId);
+      } else {
+        next.add(workoutId);
+      }
+      return next;
+    });
+  };
 
   const dateLabel = date.toLocaleDateString("en", {
     weekday: "long",
@@ -187,24 +202,68 @@ export default function DayWorkoutPreview({
                   <h3 className="text-sm font-semibold text-[#f3f2f4]">Friends' workouts</h3>
                   {friendsWorkouts.map((friend) => (
                     <div key={friend.userId}>
-                      <div className="mb-2 flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => onViewFriendProfile?.(friend.userId, friend.displayName)}
+                        className="mb-2 flex items-center gap-2 rounded-lg transition hover:opacity-80"
+                      >
                         <FriendAvatar userId={friend.userId} displayName={friend.displayName} size={24} />
                         <span className="text-xs font-semibold text-[#e2e0e3]">{friend.displayName}</span>
-                      </div>
+                      </button>
                       <div className="space-y-2 ml-2">
                         {friend.workouts.map((workout) => (
                           <article key={workout.id} className="rounded-lg border border-white/5 bg-[#20202e] p-3">
-                            <div className="flex items-start justify-between gap-2">
-                              <div className="min-w-0">
-                                <h4 className="truncate text-xs font-semibold text-[#f3f2f4]">{workout.name}</h4>
-                                <p className="mt-0.5 text-[9px] font-medium text-[#aaa5ad]">
-                                  {workout.sets.length} {workout.sets.length === 1 ? "set" : "sets"}
-                                </p>
+                            <button
+                              type="button"
+                              onClick={() => toggleWorkoutExpanded(workout.id)}
+                              className="w-full text-left transition hover:opacity-80"
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="min-w-0 flex-1">
+                                  <h4 className="truncate text-xs font-semibold text-[#f3f2f4]">{workout.name}</h4>
+                                  <p className="mt-0.5 text-[9px] font-medium text-[#aaa5ad]">
+                                    {workout.sets.length} {workout.sets.length === 1 ? "set" : "sets"}
+                                  </p>
+                                </div>
+                                <div className="flex shrink-0 items-center gap-2">
+                                  <span className="rounded-full bg-[#27272b] px-2 py-0.5 text-[9px] font-semibold tabular-nums text-[#cbc7cd]">
+                                    {formatDuration(workoutTime(workout))}
+                                  </span>
+                                  <svg
+                                    className={`h-3 w-3 text-[#aaa5ad] transition-transform ${
+                                      expandedWorkoutIds.has(workout.id) ? "rotate-180" : ""
+                                    }`}
+                                    viewBox="0 0 24 24"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    strokeWidth="2"
+                                    strokeLinecap="round"
+                                  >
+                                    <path d="m6 9 6 6 6-6" />
+                                  </svg>
+                                </div>
                               </div>
-                              <span className="shrink-0 rounded-full bg-[#27272b] px-2 py-0.5 text-[9px] font-semibold tabular-nums text-[#cbc7cd]">
-                                {formatDuration(workoutTime(workout))}
-                              </span>
-                            </div>
+                            </button>
+
+                            {expandedWorkoutIds.has(workout.id) && (
+                              <ol className="mt-3 space-y-2 border-t border-white/10 pt-3">
+                                {workout.sets.map((set, index) => (
+                                  <li key={set.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-[9px]">
+                                    <span className="font-medium text-[#e2e0e3]">
+                                      {index + 1}. {set.category}
+                                    </span>
+                                    <span className="text-right text-[#b8b3ba]">
+                                      {set.amount} {set.unit}
+                                      {set.weightKg !== undefined ? ` · ${set.weightKg} kg` : ""}
+                                      {" · "}
+                                      {formatDuration(set.timeSeconds)}
+                                      {" + "}
+                                      {formatDuration(set.restSeconds)} rest
+                                    </span>
+                                  </li>
+                                ))}
+                              </ol>
+                            )}
                           </article>
                         ))}
                       </div>
