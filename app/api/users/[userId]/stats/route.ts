@@ -3,6 +3,17 @@ import { query } from "@/lib/db";
 import { getCurrentUser } from "@/lib/session";
 import type { WorkoutRecord, WorkoutSet, WorkoutSource } from "@/lib/types";
 
+type BestTimeKey =
+  | "running"
+  | "skiing"
+  | "rowing"
+  | "sledPull"
+  | "sledPush"
+  | "burpeeBroad"
+  | "sandbagLunges"
+  | "farmerCarries"
+  | "wallBalls";
+
 export const dynamic = "force-dynamic";
 
 function getWeeklyRunningTrend(workouts: WorkoutRecord[]) {
@@ -37,6 +48,79 @@ function getWeeklyRunningTrend(workouts: WorkoutRecord[]) {
     .sort((a, b) => a.date.localeCompare(b.date));
 }
 
+function formatDuration(seconds: number): string {
+  const hours = Math.floor(seconds / 3600);
+  const minutes = Math.floor((seconds % 3600) / 60);
+  const remainingSeconds = seconds % 60;
+  return hours > 0
+    ? `${hours}:${String(minutes).padStart(2, "0")}:${String(remainingSeconds).padStart(2, "0")}`
+    : `${minutes}:${String(remainingSeconds).padStart(2, "0")}`;
+}
+
+function calculateBestTimes(workouts: WorkoutRecord[]) {
+  const bestTimeKeys: Record<string, BestTimeKey> = {
+    running: "running",
+    skierg: "skiing",
+    rowing: "rowing",
+    "sled pull": "sledPull",
+    "sled push": "sledPush",
+    "burpee broad jumps": "burpeeBroad",
+    "sandbag lunges": "sandbagLunges",
+    "farmer carries": "farmerCarries",
+    "wall balls": "wallBalls",
+  };
+
+  const bestTimeMinimums: Partial<
+    Record<BestTimeKey, { amount: number; unit: "m" | "reps"; weightKg?: number }>
+  > = {
+    skiing: { amount: 1000, unit: "m" },
+    rowing: { amount: 1000, unit: "m" },
+    sledPull: { amount: 12.5, unit: "m", weightKg: 78 },
+    sledPush: { amount: 12.5, unit: "m", weightKg: 102 },
+    burpeeBroad: { amount: 80, unit: "m" },
+    sandbagLunges: { amount: 100, unit: "m", weightKg: 10 },
+    farmerCarries: { amount: 200, unit: "m", weightKg: 16 },
+    wallBalls: { amount: 100, unit: "reps", weightKg: 4 },
+  };
+
+  const result: Record<string, string> = {};
+
+  for (const workout of workouts) {
+    for (const set of workout.sets) {
+      if (!set.completed) continue;
+
+      const categoryLower = set.category.toLowerCase();
+      const matchedKey = Object.entries(bestTimeKeys).find(([key]) =>
+        categoryLower.includes(key)
+      );
+
+      if (!matchedKey) continue;
+
+      const [, timeKey] = matchedKey;
+      const minimum = bestTimeMinimums[timeKey];
+
+      if (!minimum) continue;
+
+      const meetsMinimum =
+        (minimum.unit === "m" && set.amount >= minimum.amount) ||
+        (minimum.unit === "reps" && set.amount >= minimum.amount) ||
+        (minimum.weightKg !== undefined &&
+          set.weightKg !== undefined &&
+          set.weightKg >= minimum.weightKg &&
+          set.amount >= minimum.amount);
+
+      if (!meetsMinimum) continue;
+
+      const timeStr = formatDuration(set.timeSeconds);
+      if (!result[timeKey] || set.timeSeconds < parseInt(result[timeKey])) {
+        result[timeKey] = timeStr;
+      }
+    }
+  }
+
+  return result;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ userId: string }> }
@@ -56,7 +140,7 @@ export async function GET(
 
     // Get target user info
     const userResult = await query(
-      `SELECT id, display_name AS "displayName", best_times AS "bestTimes"
+      `SELECT id, display_name AS "displayName"
        FROM app_users
        WHERE id = $1`,
       [targetUserId]
@@ -93,13 +177,14 @@ export async function GET(
       return total + workout.sets.reduce((setTotal, set) => setTotal + (set.completed ? set.timeSeconds : 0), 0);
     }, 0);
 
+    const bestTimes = calculateBestTimes(workouts);
     const runningTrend = getWeeklyRunningTrend(workouts);
     const recentWorkouts = workouts.slice(0, 10);
 
     return NextResponse.json({
       userId: targetUser.id,
       displayName: targetUser.displayName,
-      bestTimes: targetUser.bestTimes || {},
+      bestTimes,
       stats: {
         totalWorkouts,
         totalTimeSeconds,
