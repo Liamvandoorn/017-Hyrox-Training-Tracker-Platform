@@ -9,7 +9,7 @@ interface User {
   displayName: string;
 }
 
-export default function FriendsDirectory() {
+export default function FriendsDirectory({ onClose }: { onClose: () => void }) {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -37,13 +37,39 @@ export default function FriendsDirectory() {
     void loadUsers();
   }, [loadUsers]);
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [onClose]);
+
   return (
     <>
-      <div className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm" onClick={() => {}} />
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-[#1c1c1f] p-6 shadow-xl">
+      <button
+        type="button"
+        aria-label="Close friends"
+        onClick={onClose}
+        className="fixed inset-0 z-30 bg-black/50 backdrop-blur-sm"
+      />
+      <div className="fixed inset-0 z-40 flex items-center justify-center p-4">
+        <section
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="friends-title"
+          className="max-h-[calc(100dvh-120px)] w-full max-w-sm overflow-y-auto rounded-2xl border border-white/10 bg-[#1c1c1f] p-6 shadow-xl"
+        >
           <div className="mb-6 flex items-center justify-between">
-            <h2 className="text-xl font-semibold text-[#f3f2f4]">Friends</h2>
+            <h2 id="friends-title" className="text-xl font-semibold text-[#f3f2f4]">Friends</h2>
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close friends"
+              className="flex h-9 w-9 items-center justify-center rounded-full bg-[#303034] text-[#b8b3ba] hover:bg-[#404045]"
+            >
+              ×
+            </button>
           </div>
 
           {error && (
@@ -57,7 +83,7 @@ export default function FriendsDirectory() {
           ) : users.length === 0 ? (
             <p className="text-center text-sm text-[#aaa5ad]">No users found</p>
           ) : (
-            <div className="grid grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4">
               {users.map((user) => (
                 <button
                   key={user.id}
@@ -66,19 +92,17 @@ export default function FriendsDirectory() {
                     setSelectedUserId(user.id);
                     setSelectedUserName(user.displayName);
                   }}
-                  className="flex flex-col items-center gap-3 rounded-2xl bg-[#27272b] p-4 transition-all hover:bg-[#303034] hover:scale-105"
+                  className="flex min-w-0 flex-col items-center gap-3 rounded-2xl bg-[#27272b] p-2 transition-colors hover:bg-[#303034]"
                 >
-                  <div className="relative">
-                    <ProfileAvatar displayName={user.displayName} size={100} />
-                  </div>
-                  <p className="text-center text-sm font-medium text-[#d8d4da] line-clamp-2">
+                  <ProfileAvatar userId={user.id} displayName={user.displayName} size={80} />
+                  <p className="max-w-full text-center text-sm font-medium text-[#d8d4da] line-clamp-2">
                     {user.displayName}
                   </p>
                 </button>
               ))}
             </div>
           )}
-        </div>
+        </section>
       </div>
 
       {selectedUserId !== null && (

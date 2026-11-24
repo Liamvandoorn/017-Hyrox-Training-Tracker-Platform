@@ -150,7 +150,7 @@ export default function Navbar({ workoutInProgress = false }: { workoutInProgres
           onSelect={startWorkout}
         />
       )}
-      {isFriendsOpen && <FriendsDirectory />}
+      {isFriendsOpen && <FriendsDirectory onClose={() => setIsFriendsOpen(false)} />}
     </>
   );
 }

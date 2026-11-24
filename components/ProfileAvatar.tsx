@@ -7,10 +7,12 @@ const PROFILE_PHOTO_UPDATED_EVENT = "hyrox-profile-photo-updated";
 
 export default function ProfileAvatar({
   displayName,
+  userId,
   size = 48,
   onAvailabilityChange,
 }: {
   displayName: string;
+  userId?: number;
   size?: number;
   onAvailabilityChange?: (available: boolean) => void;
 }) {
@@ -43,7 +45,7 @@ export default function ProfileAvatar({
     >
       {photoAvailable ? (
         <Image
-          src={`/api/profile/photo?v=${version}`}
+          src={`${userId === undefined ? "/api/profile/photo" : `/api/users/${userId}/photo`}?v=${version}`}
           alt=""
           width={size}
           height={size}
