@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { WorkoutRecord } from "@/lib/types";
 import ProfileAvatar from "@/components/ProfileAvatar";
+import FriendAvatar from "@/components/FriendAvatar";
 
 interface FriendWorkoutData {
   userId: number;
@@ -187,7 +188,7 @@ export default function DayWorkoutPreview({
                   {friendsWorkouts.map((friend) => (
                     <div key={friend.userId}>
                       <div className="mb-2 flex items-center gap-2">
-                        <ProfileAvatar displayName={friend.displayName} size={24} />
+                        <FriendAvatar userId={friend.userId} displayName={friend.displayName} size={24} />
                         <span className="text-xs font-semibold text-[#e2e0e3]">{friend.displayName}</span>
                       </div>
                       <div className="space-y-2 ml-2">
