@@ -6,6 +6,7 @@ import AdminUserManager from "@/components/AdminUserManager";
 import { useAuth } from "@/components/AuthProvider";
 import WorkoutHistoryManager from "@/components/WorkoutHistoryManager";
 import WorkoutPlanBuilder from "@/components/WorkoutPlanBuilder";
+import ProfilePhotoManager from "@/components/ProfilePhotoManager";
 
 export default function SettingsPage() {
   const { user } = useAuth();
@@ -28,6 +29,8 @@ export default function SettingsPage() {
             {user?.displayName} · {user?.role === "admin" ? "Administrator" : "Member"}
           </p>
         </div>
+
+        <ProfilePhotoManager />
 
         {user?.role === "admin" && <AdminUserManager />}
 

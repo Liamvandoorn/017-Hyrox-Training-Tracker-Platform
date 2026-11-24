@@ -24,8 +24,15 @@ async function initializeDatabase() {
         pin_digest CHAR(64) NOT NULL UNIQUE,
         role VARCHAR(10) NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'user')),
         active BOOLEAN NOT NULL DEFAULT TRUE,
+        avatar_data BYTEA,
+        avatar_content_type VARCHAR(32),
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
+
+      ALTER TABLE app_users
+        ADD COLUMN IF NOT EXISTS avatar_data BYTEA;
+      ALTER TABLE app_users
+        ADD COLUMN IF NOT EXISTS avatar_content_type VARCHAR(32);
 
       CREATE TABLE IF NOT EXISTS app_sessions (
         token_digest CHAR(64) PRIMARY KEY,

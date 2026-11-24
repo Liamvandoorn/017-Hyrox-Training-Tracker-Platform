@@ -50,6 +50,49 @@ export interface AppUser {
   active: boolean;
 }
 
+export interface ProfilePhoto {
+  data: Buffer;
+  contentType: string;
+}
+
+export async function getProfilePhoto(userId: number): Promise<ProfilePhoto | null> {
+  const result = await query(
+    `SELECT avatar_data AS data, avatar_content_type AS "contentType"
+     FROM app_users
+     WHERE id = $1 AND active = TRUE`,
+    [userId]
+  );
+  const photo = result.rows[0];
+  if (!photo?.data || !photo.contentType) return null;
+  return photo;
+}
+
+export async function saveProfilePhoto(
+  userId: number,
+  data: Buffer,
+  contentType: string
+): Promise<boolean> {
+  const result = await query(
+    `UPDATE app_users
+     SET avatar_data = $2, avatar_content_type = $3
+     WHERE id = $1 AND active = TRUE
+     RETURNING id`,
+    [userId, data, contentType]
+  );
+  return Boolean(result.rowCount);
+}
+
+export async function deleteProfilePhoto(userId: number): Promise<boolean> {
+  const result = await query(
+    `UPDATE app_users
+     SET avatar_data = NULL, avatar_content_type = NULL
+     WHERE id = $1 AND active = TRUE
+     RETURNING id`,
+    [userId]
+  );
+  return Boolean(result.rowCount);
+}
+
 export async function countUsers(): Promise<number> {
   const result = await query("SELECT COUNT(*)::int AS count FROM app_users");
   return result.rows[0].count;
@@ -345,8 +388,15 @@ export async function initializeDatabase() {
       pin_digest CHAR(64) NOT NULL UNIQUE,
       role VARCHAR(10) NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'user')),
       active BOOLEAN NOT NULL DEFAULT TRUE,
+      avatar_data BYTEA,
+      avatar_content_type VARCHAR(32),
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+
+    ALTER TABLE app_users
+      ADD COLUMN IF NOT EXISTS avatar_data BYTEA;
+    ALTER TABLE app_users
+      ADD COLUMN IF NOT EXISTS avatar_content_type VARCHAR(32);
 
     CREATE TABLE IF NOT EXISTS app_sessions (
       token_digest CHAR(64) PRIMARY KEY,

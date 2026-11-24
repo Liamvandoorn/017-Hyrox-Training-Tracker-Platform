@@ -8,6 +8,7 @@ import ChartContainer from "@/components/ChartContainer";
 import DayCarousel from "@/components/DayCarousel";
 import DayWorkoutPreview from "@/components/DayWorkoutPreview";
 import Navbar from "@/components/Navbar";
+import ProfileAvatar from "@/components/ProfileAvatar";
 import SimpleChart from "@/components/SimpleChart";
 import TotalTimeBox from "@/components/TotalTimeBox";
 import { WORKOUT_CATEGORIES } from "@/lib/types";
@@ -402,17 +403,20 @@ export default function Dashboard() {
               {selectedDate.toLocaleDateString("en", { weekday: "long", month: "long", day: "numeric" })}
             </p>
           </div>
-          <button
-            type="button"
-            onClick={signOut}
-            aria-label="Sign out"
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[#28282c] text-[#b8b3ba] shadow-sm transition hover:bg-[#27272b] hover:text-[#f3f2f4]"
-          >
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]" aria-hidden="true">
-              <path d="M10 17l5-5-5-5M15 12H3" />
-              <path d="M12 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5" />
-            </svg>
-          </button>
+          <div className="flex items-center gap-2">
+            {user && <ProfileAvatar displayName={user.displayName} />}
+            <button
+              type="button"
+              onClick={signOut}
+              aria-label="Sign out"
+              className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-[#28282c] text-[#b8b3ba] shadow-sm transition hover:bg-[#27272b] hover:text-[#f3f2f4]"
+            >
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-[18px] w-[18px]" aria-hidden="true">
+                <path d="M10 17l5-5-5-5M15 12H3" />
+                <path d="M12 3h5a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-5" />
+              </svg>
+            </button>
+          </div>
         </header>
         {authError && (
           <p role="alert" className="rounded-xl border border-[#714342] bg-[#3d2425] px-4 py-3 text-sm text-[#ffa8a4]">

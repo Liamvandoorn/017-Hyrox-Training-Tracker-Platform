@@ -11,6 +11,7 @@ A progressive web app (PWA) built with Next.js for tracking Hyrox training sessi
 - 📊 **Track Training** - Log exercises, duration, distance, and notes
 - 🏋️ **Workout Builder** - Follow saved plans or build a session from editable sets
 - 🗓️ **Workout Plans** - Create, edit, and reuse workout templates from Settings
+- 🧑 **Profile Photos** - Upload a private profile photo shown in Settings and on the dashboard
 - 🗄️ **Neon Database** - PostgreSQL database for persistent storage
 - 📈 **Workout Recaps** - Complete sets and review session volume and set time
 - 🎨 **Responsive UI** - Mobile-first dashboard and workout logging
@@ -56,6 +57,8 @@ Keep `PIN_PEPPER` stable; changing it invalidates all PINs. Remove
 npm run init-db
 ```
 
+This safely adds the profile photo columns to existing `app_users` tables too.
+
 ### 5. Access the Application
 
 Open [http://localhost:3000](http://localhost:3000) and create the first administrator with the one-time setup key. The administrator can then create member accounts from Settings.
@@ -82,7 +85,8 @@ Open [http://localhost:3000](http://localhost:3000) and create the first adminis
 2. **Log Workout** - Choose Follow plan or Log own workout from the slide-up menu above the navigation
 3. **Build sets** - Use the docked composer to enter distance, weight, or reps; sled pushes/pulls, sandbag lunges, and farmer carries take both distance and weight (farmer carry weight is per kettlebell), while wall balls include a weight field. Enter time and rest manually, or tap **Time** to start a stopwatch and tap again to insert the elapsed time. Adding a set while timing uses the current elapsed time.
 4. **Complete or abort** - Tap each numbered circle as you finish a set to start its rest countdown; finish to save a recap or abort after confirming. Skip rest if needed. Dashboard and Settings navigation is disabled during a workout. The in-progress workout is also saved in the current browser tab and restored if you refresh or leave the page; it is cleared when you finish or abort.
-5. **Build a plan** - Create and edit reusable workout plans in Settings. Choose Follow plan to import a saved plan into a new workout.
+5. **Manage your profile** - Add or change your profile photo in Settings. JPEG, PNG, and WebP images up to 1 MB are stored in your account row and served only to you.
+6. **Build a plan** - Create and edit reusable workout plans in Settings. Choose Follow plan to import a saved plan into a new workout.
 
 ## HYROX Best-Time Eligibility
 
