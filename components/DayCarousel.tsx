@@ -130,18 +130,21 @@ export default function DayCarousel({ onDaySelect, workoutCounts = {}, friendsWi
               <span className={`text-sm font-semibold tabular-nums sm:text-base ${selected ? "text-[#290f18]" : "text-[#f3f2f4]"}`}>
                 {date.getDate()}
               </span>
-              <span className="flex h-3 items-center gap-0.5">
-                {workoutCount > 0 ? (
-                  <>
+              {/* Only show dot/count indicator if there are NO friend workouts to display */}
+              {friendIds.length === 0 && (
+                <span className="flex h-3 items-center gap-0.5">
+                  {workoutCount > 0 ? (
+                    <>
+                      <span className={`h-1 w-1 rounded-full ${selected ? "bg-[#401721]" : "bg-[#f16b84]"}`} />
+                      <span className={`text-[9px] font-semibold tabular-nums ${selected ? "text-[#401721]" : "text-[#b8b3ba]"}`}>
+                        {workoutCount > 99 ? "99+" : workoutCount}
+                      </span>
+                    </>
+                  ) : isToday ? (
                     <span className={`h-1 w-1 rounded-full ${selected ? "bg-[#401721]" : "bg-[#f16b84]"}`} />
-                    <span className={`text-[9px] font-semibold tabular-nums ${selected ? "text-[#401721]" : "text-[#b8b3ba]"}`}>
-                      {workoutCount > 99 ? "99+" : workoutCount}
-                    </span>
-                  </>
-                ) : isToday ? (
-                  <span className={`h-1 w-1 rounded-full ${selected ? "bg-[#401721]" : "bg-[#f16b84]"}`} />
-                ) : null}
-              </span>
+                  ) : null}
+                </span>
+              )}
               {friendIds.length > 0 && (
                 <div className="flex items-center justify-center mt-0.5">
                   {/* Rule 1: Only 1 user - show larger avatar */}
