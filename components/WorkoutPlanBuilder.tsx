@@ -91,7 +91,7 @@ function SetTimeInput({
   return (
     <label className="min-w-0">
       <span className="mb-1 block text-[8px] font-bold uppercase tracking-wide text-[#aaa5ad]">{label}</span>
-      <span className="flex h-10 items-center justify-center rounded-lg border border-white/10 bg-[#27272b] px-1 focus-within:border-[#91576a]">
+      <span className="flex h-10 items-center justify-center rounded-lg border border-white/10 bg-[#27272b] px-1 focus-within:border-[#5a5e63]">
         <input
           type="text"
           inputMode="numeric"
@@ -310,7 +310,7 @@ export default function WorkoutPlanBuilder() {
               setNotice("");
               document.getElementById("plan-name")?.focus();
             }}
-            className="rounded-lg bg-[#f16b84] px-3 py-2 text-xs font-semibold text-[#290f18] hover:bg-[#ff91a5]"
+            className="rounded-lg bg-[#d0d3d6] px-3 py-2 text-xs font-semibold text-[#1b1c1e] hover:bg-[#e2e4e6]"
           >
             New plan
           </button>
@@ -330,7 +330,7 @@ export default function WorkoutPlanBuilder() {
               onChange={(event) => setName(event.target.value)}
               maxLength={120}
               placeholder="e.g. HYROX race prep"
-              className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-3 text-sm text-[#f3f2f4] outline-none focus:border-[#91576a]"
+              className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-3 text-sm text-[#f3f2f4] outline-none focus:border-[#5a5e63]"
             />
           </label>
 
@@ -340,7 +340,7 @@ export default function WorkoutPlanBuilder() {
               <select
                 value={setDraft.category}
                 onChange={(event) => changeCategory(event.target.value)}
-                className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs text-[#f3f2f4] outline-none focus:border-[#91576a]"
+                className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs text-[#f3f2f4] outline-none focus:border-[#5a5e63]"
               >
                 {WORKOUT_CATEGORIES.map((category) => <option key={category}>{category}</option>)}
               </select>
@@ -355,7 +355,7 @@ export default function WorkoutPlanBuilder() {
                 step={getWorkoutSetUnit(setDraft.category) === "reps" ? "1" : "0.1"}
                 value={setDraft.amount}
                 onChange={(event) => setSetDraft((current) => ({ ...current, amount: event.target.value }))}
-                className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs text-[#f3f2f4] outline-none focus:border-[#91576a]"
+                className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs text-[#f3f2f4] outline-none focus:border-[#5a5e63]"
               />
             </label>
           </div>
@@ -372,7 +372,7 @@ export default function WorkoutPlanBuilder() {
                   step="0.1"
                   value={setDraft.weight}
                   onChange={(event) => setSetDraft((current) => ({ ...current, weight: event.target.value }))}
-                  className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs text-[#f3f2f4] outline-none focus:border-[#91576a]"
+                  className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs text-[#f3f2f4] outline-none focus:border-[#5a5e63]"
                 />
               </label>
             )}
@@ -389,7 +389,7 @@ export default function WorkoutPlanBuilder() {
             <button
               type="button"
               onClick={saveSet}
-              className="h-10 rounded-lg border border-[#67414e] bg-[#30282d] px-3 text-xs font-semibold text-[#ffb0bd] hover:bg-[#41343b]"
+              className="h-10 rounded-lg border border-[#51555a] bg-[#2b2d30] px-3 text-xs font-semibold text-[#d1d4d7] hover:bg-[#3b3d41]"
             >
               {editingSetId ? "Update set" : "Add set"}
             </button>
@@ -404,7 +404,7 @@ export default function WorkoutPlanBuilder() {
                   {" · "}{formatTime(set.timeSeconds)} time · {formatTime(set.restSeconds)} rest
                 </span>
                 <span className="flex gap-2">
-                  <button type="button" onClick={() => editSet(set)} className="text-xs font-semibold text-[#ffb0bd] hover:underline">Edit set</button>
+                  <button type="button" onClick={() => editSet(set)} className="text-xs font-semibold text-[#d1d4d7] hover:underline">Edit set</button>
                   <button
                     type="button"
                     onClick={() => {
@@ -430,7 +430,7 @@ export default function WorkoutPlanBuilder() {
                 Cancel
               </button>
             )}
-            <button type="submit" disabled={isSaving} className="rounded-lg bg-[#f16b84] px-4 py-2 text-xs font-semibold text-[#290f18] hover:bg-[#ff91a5] disabled:opacity-50">
+            <button type="submit" disabled={isSaving} className="rounded-lg bg-[#d0d3d6] px-4 py-2 text-xs font-semibold text-[#1b1c1e] hover:bg-[#e2e4e6] disabled:opacity-50">
               {isSaving ? "Saving..." : editingPlanId ? "Save changes" : "Save plan"}
             </button>
           </div>
@@ -454,7 +454,7 @@ export default function WorkoutPlanBuilder() {
               </p>
             </div>
             <div className="flex shrink-0 gap-1.5">
-              <button type="button" onClick={() => editPlan(plan)} className="rounded-lg border border-[#67414e] bg-[#30282d] px-2.5 py-1.5 text-xs font-semibold text-[#ffb0bd] hover:bg-[#41343b]">
+              <button type="button" onClick={() => editPlan(plan)} className="rounded-lg border border-[#51555a] bg-[#2b2d30] px-2.5 py-1.5 text-xs font-semibold text-[#d1d4d7] hover:bg-[#3b3d41]">
                 Edit
               </button>
               <button type="button" onClick={() => void removePlan(plan)} className="rounded-lg border border-[#714342] bg-[#3d2425] px-2.5 py-1.5 text-xs font-semibold text-[#ffaaa5] hover:bg-[#4a292a]">

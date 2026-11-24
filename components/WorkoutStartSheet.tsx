@@ -28,7 +28,7 @@ export default function WorkoutStartSheet({
       >
         <div className="mb-3 flex items-start justify-between px-1">
           <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#f9a0ae]">TODAY&apos;S SESSION</p>
+            <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#d1d4d7]">TODAY&apos;S SESSION</p>
             <h2 id="workout-start-title" className="mt-1 text-base font-semibold text-[#f3f2f4]">How would you like to train?</h2>
           </div>
           <button
@@ -46,9 +46,9 @@ export default function WorkoutStartSheet({
           <button
             type="button"
             onClick={() => onSelect("plan")}
-            className="rounded-[1.2rem] bg-[#30282d] p-3.5 text-left transition hover:bg-[#41343b]"
+            className="rounded-[1.2rem] bg-[#2b2d30] p-3.5 text-left transition hover:bg-[#3b3d41]"
           >
-            <span className="mb-2 flex h-8 w-8 items-center justify-center rounded-xl bg-[#27272b] text-[#ffadba]">
+            <span className="mb-2 flex h-8 w-8 items-center justify-center rounded-xl bg-[#27272b] text-[#d1d4d7]">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4" aria-hidden="true">
                 <path d="M5 5h14M5 10h14M5 15h8M5 20h8" />
                 <path d="m16 17 2 2 3-4" />
@@ -60,9 +60,9 @@ export default function WorkoutStartSheet({
           <button
             type="button"
             onClick={() => onSelect("own")}
-            className="rounded-[1.2rem] bg-[#35282e] p-3.5 text-left transition hover:bg-[#47343d]"
+            className="rounded-[1.2rem] bg-[#2b2d30] p-3.5 text-left transition hover:bg-[#3b3d41]"
           >
-            <span className="mb-2 flex h-8 w-8 items-center justify-center rounded-xl bg-[#27272b] text-[#ffb0bd]">
+            <span className="mb-2 flex h-8 w-8 items-center justify-center rounded-xl bg-[#27272b] text-[#d1d4d7]">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" className="h-4 w-4" aria-hidden="true">
                 <path d="M12 5v14M5 12h14" />
               </svg>

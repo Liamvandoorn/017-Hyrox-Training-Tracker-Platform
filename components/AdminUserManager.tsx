@@ -132,7 +132,7 @@ export default function AdminUserManager() {
             minLength={2}
             maxLength={60}
             autoComplete="off"
-            className="mt-1 w-full rounded-xl border border-white/10 bg-[#27272b] px-3 py-3 text-sm text-[#f3f2f4] outline-none focus:border-[#ef7890]"
+            className="mt-1 w-full rounded-xl border border-white/10 bg-[#27272b] px-3 py-3 text-sm text-[#f3f2f4] outline-none focus:border-[#bfc3c7]"
           />
         </label>
         <label className="text-xs font-medium text-[#d8d4da]">
@@ -147,13 +147,13 @@ export default function AdminUserManager() {
             minLength={4}
             maxLength={4}
             autoComplete="new-password"
-            className="mt-1 w-full rounded-xl border border-white/10 bg-[#27272b] px-3 py-3 text-center text-sm tracking-[0.3em] text-[#f3f2f4] outline-none focus:border-[#ef7890]"
+            className="mt-1 w-full rounded-xl border border-white/10 bg-[#27272b] px-3 py-3 text-center text-sm tracking-[0.3em] text-[#f3f2f4] outline-none focus:border-[#bfc3c7]"
           />
         </label>
         <button
           type="submit"
           disabled={isSaving}
-          className="self-end rounded-xl bg-[#f16b84] px-4 py-3 text-sm font-bold text-[#290f18] hover:bg-[#ff91a5] disabled:opacity-60"
+          className="self-end rounded-xl bg-[#d0d3d6] px-4 py-3 text-sm font-bold text-[#1b1c1e] hover:bg-[#e2e4e6] disabled:opacity-60"
         >
           {isSaving ? "Creating..." : "Create account"}
         </button>

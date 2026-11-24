@@ -402,7 +402,7 @@ export default function WorkoutHistoryManager() {
                       setDraft(toDraft(workout));
                       setError("");
                     }}
-                    className="rounded-lg border border-[#67414e] bg-[#30282d] px-2.5 py-1.5 text-xs font-semibold text-[#ffb0bd] hover:bg-[#41343b]"
+                    className="rounded-lg border border-[#51555a] bg-[#2b2d30] px-2.5 py-1.5 text-xs font-semibold text-[#d1d4d7] hover:bg-[#3b3d41]"
                   >
                     Edit
                   </button>
@@ -446,7 +446,7 @@ export default function WorkoutHistoryManager() {
                         value={draft.name}
                         onChange={(event) => updateDraft({ name: event.target.value })}
                         maxLength={120}
-                        className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-3 text-sm text-[#f3f2f4] outline-none focus:border-[#91576a]"
+                        className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-3 text-sm text-[#f3f2f4] outline-none focus:border-[#5a5e63]"
                       />
                     </label>
                     <label className="block">
@@ -455,7 +455,7 @@ export default function WorkoutHistoryManager() {
                         type="date"
                         value={draft.date}
                         onChange={(event) => updateDraft({ date: event.target.value })}
-                        className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-3 text-sm text-[#f3f2f4] outline-none focus:border-[#91576a]"
+                        className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-3 text-sm text-[#f3f2f4] outline-none focus:border-[#5a5e63]"
                       />
                     </label>
                   </div>
@@ -496,7 +496,7 @@ export default function WorkoutHistoryManager() {
                                       : set.weightKg || "50"
                                   : "",
                               })}
-                              className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs text-[#f3f2f4] outline-none focus:border-[#91576a]"
+                              className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs text-[#f3f2f4] outline-none focus:border-[#5a5e63]"
                             >
                               {!WORKOUT_CATEGORIES.some((category) => category === set.category) && (
                                 <option value={set.category}>{set.category}</option>
@@ -512,7 +512,7 @@ export default function WorkoutHistoryManager() {
                               step={set.unit === "reps" ? "1" : "0.1"}
                               value={set.amount}
                               onChange={(event) => updateDraftSet(set.id, { amount: event.target.value })}
-                              className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs text-[#f3f2f4] outline-none focus:border-[#91576a]"
+                              className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs text-[#f3f2f4] outline-none focus:border-[#5a5e63]"
                             />
                           </label>
                           <label className="block">
@@ -524,7 +524,7 @@ export default function WorkoutHistoryManager() {
                                   updateDraftSet(set.id, { unit: event.target.value });
                                 }
                               }}
-                              className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs text-[#f3f2f4] outline-none focus:border-[#91576a]"
+                              className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs text-[#f3f2f4] outline-none focus:border-[#5a5e63]"
                             >
                               <option value="m">Meters</option>
                               <option value="kg">Kilograms</option>
@@ -553,7 +553,7 @@ export default function WorkoutHistoryManager() {
                               step="0.5"
                               value={set.weightKg}
                               onChange={(event) => updateDraftSet(set.id, { weightKg: event.target.value })}
-                              className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs text-[#f3f2f4] outline-none focus:border-[#91576a]"
+                              className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs text-[#f3f2f4] outline-none focus:border-[#5a5e63]"
                             />
                           </label>
                         </div>
@@ -576,7 +576,7 @@ export default function WorkoutHistoryManager() {
                             }],
                           }
                         : current)}
-                      className="rounded-lg border border-dashed border-white/20 px-3 py-2 text-xs font-semibold text-[#cbc7cd] hover:border-[#91576a] hover:text-[#ffb0bd]"
+                      className="rounded-lg border border-dashed border-white/20 px-3 py-2 text-xs font-semibold text-[#cbc7cd] hover:border-[#5a5e63] hover:text-[#d1d4d7]"
                     >
                       Add set
                     </button>
@@ -598,7 +598,7 @@ export default function WorkoutHistoryManager() {
                       type="button"
                       onClick={() => void saveWorkout(workout.id)}
                       disabled={isBusy}
-                      className="rounded-lg bg-[#f16b84] px-4 py-2 text-xs font-semibold text-[#290f18] hover:bg-[#ff91a5] disabled:opacity-50"
+                      className="rounded-lg bg-[#d0d3d6] px-4 py-2 text-xs font-semibold text-[#1b1c1e] hover:bg-[#e2e4e6] disabled:opacity-50"
                     >
                       {isBusy ? "Saving..." : "Save changes"}
                     </button>

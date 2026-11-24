@@ -88,8 +88,14 @@ export default function PasscodeScreen({ setupRequired }: { setupRequired: boole
   };
 
   return (
-    <div className="flex min-h-dvh items-center justify-center px-5 py-8">
-      <main className="w-full max-w-sm">
+    <div className="relative isolate flex min-h-dvh items-center justify-center overflow-hidden px-5 py-8">
+      <div
+        aria-hidden="true"
+        className="fixed inset-0 z-0 scale-105 bg-cover bg-center blur-[6px]"
+        style={{ backgroundImage: "url('/login-wallpaper.png')" }}
+      />
+      <div aria-hidden="true" className="fixed inset-0 z-0 bg-black/55" />
+      <main className="relative z-10 w-full max-w-sm">
         <div className="mb-7 flex justify-center text-[#f3f2f4]" aria-hidden="true">
           <svg viewBox="0 0 24 24" fill="currentColor" className="h-8 w-8">
             <path d="M7 10V7a5 5 0 0 1 10 0v3h1a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2h1Zm2 0h6V7a3 3 0 0 0-6 0v3Z" />
@@ -117,7 +123,7 @@ export default function PasscodeScreen({ setupRequired }: { setupRequired: boole
                 required
                 minLength={2}
                 maxLength={60}
-                className="mt-1.5 w-full rounded-xl border border-white/10 bg-[#27272b] px-3 py-2.5 text-sm text-[#f3f2f4] outline-none focus:border-[#ef7890]"
+                className="mt-1.5 w-full rounded-xl border border-white/10 bg-[#27272b] px-3 py-2.5 text-sm text-[#f3f2f4] outline-none focus:border-white"
               />
             </label>
             <label className="block text-xs font-medium text-[#d8d4da]">
@@ -128,7 +134,7 @@ export default function PasscodeScreen({ setupRequired }: { setupRequired: boole
                 value={setupKey}
                 onChange={(event) => setSetupKey(event.target.value)}
                 required
-                className="mt-1.5 w-full rounded-xl border border-white/10 bg-[#27272b] px-3 py-2.5 text-sm text-[#f3f2f4] outline-none focus:border-[#ef7890]"
+                className="mt-1.5 w-full rounded-xl border border-white/10 bg-[#27272b] px-3 py-2.5 text-sm text-[#f3f2f4] outline-none focus:border-white"
               />
             </label>
           </div>

@@ -123,14 +123,14 @@ export default function DayCarousel({ onDaySelect, workoutCounts = {}, friendsWi
               aria-label={`${longDate}, ${workoutCount} ${workoutCount === 1 ? "workout" : "workouts"} logged`}
               className={`flex w-10 flex-none snap-center flex-col items-center justify-center gap-1 rounded-[1.15rem] py-2.5 transition duration-200 sm:w-11 sm:py-3 ${
                 selected
-                  ? "bg-[#f16b84] text-[#290f18] shadow-[0_8px_18px_rgba(39,55,68,0.22)]"
+                  ? "bg-[#d0d3d6] text-[#1b1c1e] shadow-[0_8px_18px_rgba(39,55,68,0.22)]"
                   : "text-[#b8b3ba] hover:bg-[#1c1c1f]"
               }`}
             >
-              <span className={`text-[10px] font-semibold uppercase tracking-wide sm:text-[11px] ${selected ? "text-[#401721]" : ""}`}>
+              <span className={`text-[10px] font-semibold uppercase tracking-wide sm:text-[11px] ${selected ? "text-[#4c5055]" : ""}`}>
                 {date.toLocaleDateString("en", { weekday: "short" })}
               </span>
-              <span className={`text-sm font-semibold tabular-nums sm:text-base ${selected ? "text-[#290f18]" : "text-[#f3f2f4]"}`}>
+              <span className={`text-sm font-semibold tabular-nums sm:text-base ${selected ? "text-[#1b1c1e]" : "text-[#f3f2f4]"}`}>
                 {date.getDate()}
               </span>
               {/* Only show dot/count indicator if there are NO profile avatars to display */}
@@ -138,13 +138,13 @@ export default function DayCarousel({ onDaySelect, workoutCounts = {}, friendsWi
                 <span className="flex h-3 items-center gap-0.5">
                   {workoutCount > 0 ? (
                     <>
-                      <span className={`h-1 w-1 rounded-full ${selected ? "bg-[#401721]" : "bg-[#f16b84]"}`} />
-                      <span className={`text-[9px] font-semibold tabular-nums ${selected ? "text-[#401721]" : "text-[#b8b3ba]"}`}>
+                      <span className={`h-1 w-1 rounded-full ${selected ? "bg-[#4c5055]" : "bg-[#d0d3d6]"}`} />
+                      <span className={`text-[9px] font-semibold tabular-nums ${selected ? "text-[#4c5055]" : "text-[#b8b3ba]"}`}>
                         {workoutCount > 99 ? "99+" : workoutCount}
                       </span>
                     </>
                   ) : isToday ? (
-                    <span className={`h-1 w-1 rounded-full ${selected ? "bg-[#401721]" : "bg-[#f16b84]"}`} />
+                    <span className={`h-1 w-1 rounded-full ${selected ? "bg-[#4c5055]" : "bg-[#d0d3d6]"}`} />
                   ) : null}
                 </span>
               )}

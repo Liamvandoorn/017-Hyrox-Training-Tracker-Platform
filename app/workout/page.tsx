@@ -144,7 +144,7 @@ function TimeInput({ label, value, onChange, autoFocus, onBlur, onKeyDown, class
       aria-label={label}
       onBlur={onBlur}
       onKeyDown={onKeyDown}
-      className={className ?? "flex h-10 items-center justify-center rounded-lg border border-white/10 bg-[#27272b] px-1 focus-within:border-[#91576a]"}
+      className={className ?? "flex h-10 items-center justify-center rounded-lg border border-white/10 bg-[#27272b] px-1 focus-within:border-[#5a5e63]"}
     >
       <input
         type="text"
@@ -235,7 +235,7 @@ function EditableValue({
               setEditing(false);
             }
           }}
-          className="flex h-8 w-[86px] items-center justify-center rounded-lg border border-[#91576a] bg-[#27272b] px-1 focus-within:ring-2 focus-within:ring-[#dce8f0]"
+          className="flex h-8 w-[86px] items-center justify-center rounded-lg border border-[#5a5e63] bg-[#27272b] px-1 focus-within:ring-2 focus-within:ring-[#dce8f0]"
         />
       ) : editing ? (
         <input
@@ -253,7 +253,7 @@ function EditableValue({
               setEditing(false);
             }
           }}
-          className="h-8 w-[70px] rounded-lg border border-[#91576a] bg-[#27272b] px-2 py-1 text-left text-sm font-semibold tabular-nums text-[#f3f2f4] outline-none focus:ring-2 focus:ring-[#dce8f0]"
+          className="h-8 w-[70px] rounded-lg border border-[#5a5e63] bg-[#27272b] px-2 py-1 text-left text-sm font-semibold tabular-nums text-[#f3f2f4] outline-none focus:ring-2 focus:ring-[#dce8f0]"
         />
       ) : (
         <button
@@ -263,7 +263,7 @@ function EditableValue({
             setDraft(value);
             setEditing(true);
           }}
-          className="inline-flex min-h-8 items-center justify-start gap-1 rounded-md border border-white/10 bg-[#303034] px-1.5 py-1 text-left text-sm font-semibold tabular-nums text-[#e2e0e3] transition hover:border-[#91576a] hover:bg-[#303034] hover:text-[#ffb0bd]"
+          className="inline-flex min-h-8 items-center justify-start gap-1 rounded-md border border-white/10 bg-[#303034] px-1.5 py-1 text-left text-sm font-semibold tabular-nums text-[#e2e0e3] transition hover:border-[#5a5e63] hover:bg-[#303034] hover:text-[#d1d4d7]"
         >
           {value}{suffix ? <span className="ml-1 text-[10px] font-medium text-[#aaa5ad]">{suffix}</span> : null}
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" className="h-3 w-3 shrink-0 text-[#aaa5ad]" aria-hidden="true">
@@ -843,7 +843,7 @@ export default function WorkoutPage() {
             <section className="rounded-[1.8rem] border border-white/10 bg-[#1c1c1f] p-5 shadow-[0_12px_30px_rgba(47,68,85,0.06)] sm:p-6">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#f9a0ae]">WORKOUT NAME · TAP TO EDIT</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[#d1d4d7]">WORKOUT NAME · TAP TO EDIT</p>
                   {isEditingName ? (
                     <input
                       autoFocus
@@ -860,7 +860,7 @@ export default function WorkoutPage() {
                       }}
                       onKeyDown={(event) => event.key === "Enter" && event.currentTarget.blur()}
                       aria-label="Workout name"
-                      className="mt-1 w-full border-b border-[#91576a] bg-transparent py-1 text-lg font-semibold text-[#f3f2f4] outline-none"
+                      className="mt-1 w-full border-b border-[#5a5e63] bg-transparent py-1 text-lg font-semibold text-[#f3f2f4] outline-none"
                     />
                   ) : (
                     <button
@@ -878,7 +878,7 @@ export default function WorkoutPage() {
                     </button>
                   )}
                 </div>
-                {source === "plan" && <span className="rounded-full bg-[#30282d] px-2.5 py-1 text-[9px] font-bold uppercase tracking-wide text-[#ffadba]">Planned</span>}
+                {source === "plan" && <span className="rounded-full bg-[#2b2d30] px-2.5 py-1 text-[9px] font-bold uppercase tracking-wide text-[#d1d4d7]">Planned</span>}
               </div>
               <label className="mt-4 block text-[10px] font-semibold uppercase tracking-wide text-[#aaa5ad]" htmlFor="workout-date">Day</label>
               <input
@@ -886,14 +886,14 @@ export default function WorkoutPage() {
                 type="date"
                 value={date}
                 onChange={(event) => setDate(event.target.value)}
-                className="mt-1 rounded-lg border border-white/10 bg-[#27272b] px-3 py-2 text-sm font-medium text-[#e2e0e3] outline-none focus:border-[#91576a]"
+                className="mt-1 rounded-lg border border-white/10 bg-[#27272b] px-3 py-2 text-sm font-medium text-[#e2e0e3] outline-none focus:border-[#5a5e63]"
               />
             </section>
 
             <section className="rounded-[1.8rem] border border-white/10 bg-[#1c1c1f] p-5 shadow-[0_12px_30px_rgba(47,68,85,0.06)] sm:p-6">
               <div className="mb-4 flex items-center justify-between">
                 <h2 className="text-base font-semibold text-[#f3f2f4]">Added sets</h2>
-                <span className="rounded-full bg-[#30282d] px-2.5 py-1 text-[10px] font-semibold text-[#b8b3ba]">{sets.length} {sets.length === 1 ? "set" : "sets"}</span>
+                <span className="rounded-full bg-[#2b2d30] px-2.5 py-1 text-[10px] font-semibold text-[#b8b3ba]">{sets.length} {sets.length === 1 ? "set" : "sets"}</span>
               </div>
               {sets.length > 0 && (
                 <p className="mb-3 text-xs text-[#b8b3ba]">
@@ -996,7 +996,7 @@ export default function WorkoutPage() {
                                   className="mt-2 h-2 overflow-hidden rounded-full bg-[#27362f]"
                                 >
                                   <div
-                                    className="h-full rounded-full bg-[#f16b84] transition-[width] duration-300"
+                                    className="h-full rounded-full bg-[#d0d3d6] transition-[width] duration-300"
                                     style={{ width: `${(restRemaining / restTimer.durationSeconds) * 100}%` }}
                                   />
                                 </div>
@@ -1047,7 +1047,7 @@ export default function WorkoutPage() {
             <button
               type="button"
               onClick={() => router.push("/dashboard")}
-              className="mt-6 w-full rounded-xl bg-[#f16b84] px-4 py-3 text-sm font-semibold text-[#290f18] transition hover:bg-[#ff91a5]"
+              className="mt-6 w-full rounded-xl bg-[#d0d3d6] px-4 py-3 text-sm font-semibold text-[#1b1c1e] transition hover:bg-[#e2e4e6]"
             >
               Back to dashboard
             </button>
@@ -1098,7 +1098,7 @@ export default function WorkoutPage() {
           >
             <div className="mb-4 flex items-start justify-between gap-3">
               <div>
-                <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#f9a0ae]">SAVED WORKOUT PLANS</p>
+                <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#d1d4d7]">SAVED WORKOUT PLANS</p>
                 <h2 id="planned-workout-title" className="mt-1 text-lg font-semibold text-[#f3f2f4]">Choose a plan</h2>
                 <p className="mt-1 text-xs text-[#b8b3ba]">The plan&apos;s sets will be copied into today&apos;s workout.</p>
               </div>
@@ -1123,7 +1123,7 @@ export default function WorkoutPage() {
                 <button
                   type="button"
                   onClick={() => router.push("/settings")}
-                  className="mt-3 rounded-lg bg-[#f16b84] px-3 py-2 text-xs font-semibold text-[#290f18] hover:bg-[#ff91a5]"
+                  className="mt-3 rounded-lg bg-[#d0d3d6] px-3 py-2 text-xs font-semibold text-[#1b1c1e] hover:bg-[#e2e4e6]"
                 >
                   Open Settings
                 </button>
@@ -1147,7 +1147,7 @@ export default function WorkoutPage() {
                   <button
                     type="button"
                     onClick={() => startPlannedWorkout(plan)}
-                    className="w-full rounded-lg bg-[#f16b84] px-3 py-2.5 text-xs font-semibold text-[#290f18] transition hover:bg-[#ff91a5]"
+                    className="w-full rounded-lg bg-[#d0d3d6] px-3 py-2.5 text-xs font-semibold text-[#1b1c1e] transition hover:bg-[#e2e4e6]"
                   >
                     Start plan
                   </button>
@@ -1232,7 +1232,7 @@ export default function WorkoutPage() {
                 value={amount}
                 onChange={(event) => setAmount(event.target.value)}
                 aria-label={getWorkoutSetUnit(category) === "m" ? "Distance in meters" : "Reps"}
-                className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs font-semibold text-[#e2e0e3] outline-none focus:border-[#91576a]"
+                className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs font-semibold text-[#e2e0e3] outline-none focus:border-[#5a5e63]"
               />
             </label>
             {requiresWeight(category) && (
@@ -1254,7 +1254,7 @@ export default function WorkoutPage() {
                       ? "Weight in kilograms per kettlebell"
                       : "Weight in kilograms"
                   }
-                  className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs font-semibold text-[#e2e0e3] outline-none focus:border-[#91576a]"
+                  className="h-10 w-full rounded-lg border border-white/10 bg-[#27272b] px-2 text-xs font-semibold text-[#e2e0e3] outline-none focus:border-[#5a5e63]"
                 />
               </label>
             )}
@@ -1279,7 +1279,7 @@ export default function WorkoutPage() {
               type="button"
               onClick={addSet}
               aria-label="Add set"
-              className="flex h-10 w-10 items-center justify-center self-end rounded-full bg-[#f16b84] text-[#290f18] shadow-sm transition hover:scale-105 hover:bg-[#ff91a5]"
+              className="flex h-10 w-10 items-center justify-center self-end rounded-full bg-[#d0d3d6] text-[#1b1c1e] shadow-sm transition hover:scale-105 hover:bg-[#e2e4e6]"
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" className="h-5 w-5" aria-hidden="true">
                 <path d="M12 5v14M5 12h14" />

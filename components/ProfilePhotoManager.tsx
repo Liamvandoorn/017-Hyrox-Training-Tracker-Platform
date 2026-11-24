@@ -90,7 +90,7 @@ export default function ProfilePhotoManager() {
             type="button"
             onClick={choosePhoto}
             disabled={busy}
-            className="flex-1 rounded-xl bg-[#f16b84] px-4 py-2.5 text-sm font-semibold text-[#290f18] transition-colors hover:bg-[#ff91a5] disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
+            className="flex-1 rounded-xl bg-[#d0d3d6] px-4 py-2.5 text-sm font-semibold text-[#1b1c1e] transition-colors hover:bg-[#e2e4e6] disabled:cursor-not-allowed disabled:opacity-60 sm:flex-none"
           >
             {busy ? "Saving..." : hasPhoto ? "Change photo" : "Add profile photo"}
           </button>

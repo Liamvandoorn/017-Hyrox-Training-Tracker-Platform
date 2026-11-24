@@ -40,7 +40,7 @@ export default function BestTimesBox({ times, status }: BestTimesBoxProps) {
             Best times
           </h2>
         </div>
-        <span className="rounded-full bg-[#30282d] px-2.5 py-1 text-[10px] font-semibold text-[#b8b3ba]">HYROX</span>
+        <span className="rounded-full bg-[#2b2d30] px-2.5 py-1 text-[10px] font-semibold text-[#b8b3ba]">HYROX</span>
       </div>
       {status && <p role="status" className="mb-1 text-[10px] text-[#aaa5ad]">{status}</p>}
       <ul className="space-y-0.5">

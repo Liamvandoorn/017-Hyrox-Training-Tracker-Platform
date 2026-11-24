@@ -98,7 +98,7 @@ export default function AddSessionForm({
             name="date"
             value={formData.date}
             onChange={handleChange}
-            className="w-full rounded-xl border border-white/10 bg-[#27272b] px-3 py-2.5 text-[#f3f2f4] outline-none transition focus:border-[#ef7890]"
+            className="w-full rounded-xl border border-white/10 bg-[#27272b] px-3 py-2.5 text-[#f3f2f4] outline-none transition focus:border-[#bfc3c7]"
             required
           />
         </div>
@@ -111,7 +111,7 @@ export default function AddSessionForm({
             name="exercise"
             value={formData.exercise}
             onChange={handleChange}
-            className="w-full rounded-xl border border-white/10 bg-[#27272b] px-3 py-2.5 text-[#f3f2f4] outline-none transition focus:border-[#ef7890]"
+            className="w-full rounded-xl border border-white/10 bg-[#27272b] px-3 py-2.5 text-[#f3f2f4] outline-none transition focus:border-[#bfc3c7]"
             required
           >
             <option value="">Select an exercise</option>
@@ -139,7 +139,7 @@ export default function AddSessionForm({
             name="duration"
             value={formData.duration}
             onChange={handleChange}
-            className="w-full rounded-xl border border-white/10 bg-[#27272b] px-3 py-2.5 text-[#f3f2f4] outline-none transition focus:border-[#ef7890]"
+            className="w-full rounded-xl border border-white/10 bg-[#27272b] px-3 py-2.5 text-[#f3f2f4] outline-none transition focus:border-[#bfc3c7]"
             min="1"
             required
           />
@@ -154,7 +154,7 @@ export default function AddSessionForm({
             name="distance"
             value={formData.distance}
             onChange={handleChange}
-            className="w-full rounded-xl border border-white/10 bg-[#27272b] px-3 py-2.5 text-[#f3f2f4] outline-none transition focus:border-[#ef7890]"
+            className="w-full rounded-xl border border-white/10 bg-[#27272b] px-3 py-2.5 text-[#f3f2f4] outline-none transition focus:border-[#bfc3c7]"
             step="0.1"
             min="0"
           />
@@ -170,7 +170,7 @@ export default function AddSessionForm({
           value={formData.notes}
           onChange={handleChange}
           rows={3}
-          className="w-full rounded-xl border border-white/10 bg-[#27272b] px-3 py-2.5 text-[#f3f2f4] outline-none transition focus:border-[#ef7890]"
+          className="w-full rounded-xl border border-white/10 bg-[#27272b] px-3 py-2.5 text-[#f3f2f4] outline-none transition focus:border-[#bfc3c7]"
           placeholder="How did it feel? Any observations?"
         />
       </div>
@@ -178,7 +178,7 @@ export default function AddSessionForm({
       <button
         type="submit"
         disabled={submitting || isLoading}
-        className="w-full rounded-xl bg-[#f16b84] py-3 font-semibold text-[#290f18] transition-colors hover:bg-[#ff91a5] disabled:opacity-50"
+        className="w-full rounded-xl bg-[#d0d3d6] py-3 font-semibold text-[#1b1c1e] transition-colors hover:bg-[#e2e4e6] disabled:opacity-50"
       >
         {submitting ? "Saving..." : "Add Session"}
       </button>

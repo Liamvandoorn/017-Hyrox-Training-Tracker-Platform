@@ -56,7 +56,7 @@ export default function Navbar({ workoutInProgress = false }: { workoutInProgres
             const isFriendsActive = isAction && item.action === "friends" && isFriendsOpen;
             const className = `flex min-h-[54px] flex-col items-center justify-center gap-1 rounded-[1.15rem] transition-colors ${
               isActive || (item.href === "/workout" && isWorkoutSheetOpen) || isFriendsActive
-                ? "bg-[#f16b84] text-[#290f18] shadow-[0_5px_20px_rgba(241,107,132,0.26)]"
+                ? "bg-[#d0d3d6] text-[#1b1c1e] shadow-[0_5px_20px_rgba(208,211,214,0.12)]"
                 : "text-[#b8b3ba] hover:bg-[#303034] hover:text-[#f3f2f4]"
             }`;
 

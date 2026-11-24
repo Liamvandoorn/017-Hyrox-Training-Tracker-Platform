@@ -38,7 +38,7 @@ export default function ProfileAvatar({
 
   return (
     <div
-      className="flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-[#353238] font-semibold text-[#f4d0d6]"
+      className="flex shrink-0 items-center justify-center overflow-hidden rounded-full border border-white/10 bg-[#353238] font-semibold text-[#d1d4d7]"
       style={{ width: size, height: size, fontSize: Math.max(12, size * 0.34) }}
       role="img"
       aria-label={`${displayName}'s profile photo`}

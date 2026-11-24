@@ -105,7 +105,7 @@ export default function FriendProfileCard({
       >
         <header className="flex items-start justify-between gap-3 border-b border-white/10 px-5 py-4">
           <div>
-            <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#f9a0ae]">
+            <p className="text-[9px] font-bold uppercase tracking-[0.18em] text-[#d1d4d7]">
               FRIEND PROFILE
             </p>
             <h2 className="mt-1 text-lg font-semibold text-[#f3f2f4]">
@@ -210,7 +210,7 @@ export default function FriendProfileCard({
           <button
             type="button"
             onClick={onClose}
-            className="w-full rounded-xl bg-[#f16b84] px-4 py-2.5 text-sm font-semibold text-[#290f18] transition hover:bg-[#ff91a5]"
+            className="w-full rounded-xl bg-[#d0d3d6] px-4 py-2.5 text-sm font-semibold text-[#1b1c1e] transition hover:bg-[#e2e4e6]"
           >
             Close
           </button>

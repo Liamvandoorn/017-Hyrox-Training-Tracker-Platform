@@ -32,7 +32,7 @@ export default function SimpleChart({
     return <div className="flex h-full items-center justify-center text-xs text-[#aaa5ad]">No data yet</div>;
   }
 
-  const stroke = color === "orange" ? "#ff9aaa" : color === "green" ? "#8bcea9" : "#f16b84";
+  const stroke = color === "orange" ? "#d1d4d7" : color === "green" ? "#8bcea9" : "#d0d3d6";
   const dataMax = Math.max(...data);
   const dataMin = Math.min(...data);
   const padding = Math.max(

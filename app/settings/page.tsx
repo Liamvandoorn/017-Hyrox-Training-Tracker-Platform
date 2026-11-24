@@ -75,7 +75,7 @@ export default function SettingsPage() {
             <Link
               href="https://www.hyrox.com"
               target="_blank"
-              className="flex-1 rounded-xl bg-[#f16b84] py-3 text-center font-semibold text-[#290f18] transition-colors hover:bg-[#ff91a5]"
+              className="flex-1 rounded-xl bg-[#d0d3d6] py-3 text-center font-semibold text-[#1b1c1e] transition-colors hover:bg-[#e2e4e6]"
             >
               Learn about Hyrox
             </Link>
