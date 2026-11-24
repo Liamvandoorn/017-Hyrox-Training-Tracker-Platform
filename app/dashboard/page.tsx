@@ -356,6 +356,56 @@ export default function Dashboard() {
     };
   }, [selectedDate, user?.id]);
 
+  // Load friend workouts for carousel on mount
+  useEffect(() => {
+    if (!user?.id) return;
+    let cancelled = false;
+
+    async function loadCarouselWorkouts() {
+      const today = new Date();
+      // Fetch for today and surrounding dates visible in carousel
+      const datesToFetch = Array.from({ length: 5 }, (_, i) => {
+        const date = new Date(today);
+        date.setDate(today.getDate() + i - 2); // -2 to 2 around today
+        return getDateKey(date);
+      });
+
+      for (const dateKey of datesToFetch) {
+        if (cancelled) return;
+        try {
+          const response = await fetch(`/api/friends/workouts?date=${dateKey}`, { cache: "no-store" });
+          if (!response.ok) continue;
+
+          const payload: unknown = await response.json();
+          if (typeof payload === "object" && payload !== null && "friendsWorkouts" in payload && "userWorkouts" in payload) {
+            const data = payload as { userWorkouts: { id: number }[]; friendsWorkouts: { userId: number; displayName: string }[] };
+            if (!cancelled) {
+              const profileIds: number[] = [];
+              
+              if (data.userWorkouts.length > 0 && user?.id) {
+                profileIds.push(user.id);
+              }
+              
+              profileIds.push(...data.friendsWorkouts.map((f) => f.userId));
+              
+              setFriendsWithWorkouts((prev) => ({
+                ...prev,
+                [dateKey]: profileIds,
+              }));
+            }
+          }
+        } catch {
+          // silently fail
+        }
+      }
+    }
+
+    void loadCarouselWorkouts();
+    return () => {
+      cancelled = true;
+    };
+  }, [user?.id]);
+
   const runningTrend = useMemo(
     () => getWeeklyRunningTrend(workouts ?? []),
     [workouts]
