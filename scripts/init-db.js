@@ -34,6 +34,16 @@ async function initializeDatabase() {
       ALTER TABLE app_users
         ADD COLUMN IF NOT EXISTS avatar_content_type VARCHAR(32);
 
+      CREATE TABLE IF NOT EXISTS user_friends (
+        user_id INTEGER NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+        friend_id INTEGER NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+        PRIMARY KEY (user_id, friend_id),
+        CONSTRAINT no_self_friends CHECK (user_id != friend_id)
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_user_friends_user_id ON user_friends(user_id);
+
       CREATE TABLE IF NOT EXISTS app_sessions (
         token_digest CHAR(64) PRIMARY KEY,
         user_id INTEGER NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,

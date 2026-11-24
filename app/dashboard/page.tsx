@@ -280,6 +280,7 @@ export default function Dashboard() {
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [workouts, setWorkouts] = useState<WorkoutRecord[] | null>(null);
   const [workoutsError, setWorkoutsError] = useState<string | null>(null);
+  const [friendsWithWorkouts, setFriendsWithWorkouts] = useState<Record<string, number[]>>({});
   const [showDayPreview, setShowDayPreview] = useState(false);
   const [authError, setAuthError] = useState("");
   const { user } = useAuth();
@@ -315,6 +316,36 @@ export default function Dashboard() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadFriendsWorkouts() {
+      const dateKey = getDateKey(selectedDate);
+      try {
+        const response = await fetch(`/api/friends/workouts?date=${dateKey}`, { cache: "no-store" });
+        if (!response.ok) return;
+
+        const payload: unknown = await response.json();
+        if (typeof payload === "object" && payload !== null && "friendsWorkouts" in payload) {
+          const data = payload as { friendsWorkouts: { userId: number; displayName: string }[] };
+          if (!cancelled) {
+            const friendIds = data.friendsWorkouts.map((f) => f.userId);
+            const updated: Record<string, number[]> = { ...friendsWithWorkouts };
+            updated[dateKey] = friendIds;
+            setFriendsWithWorkouts(updated);
+          }
+        }
+      } catch {
+        // silently fail
+      }
+    }
+
+    void loadFriendsWorkouts();
+    return () => {
+      cancelled = true;
+    };
+  }, [selectedDate]);
 
   const runningTrend = useMemo(
     () => getWeeklyRunningTrend(workouts ?? []),
@@ -426,6 +457,7 @@ export default function Dashboard() {
 
         <DayCarousel
           workoutCounts={workoutCounts}
+          friendsWithWorkouts={friendsWithWorkouts}
           onDaySelect={(date) => {
             setSelectedDate(date);
             setShowDayPreview(true);

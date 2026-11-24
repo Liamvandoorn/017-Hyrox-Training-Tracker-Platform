@@ -1,10 +1,12 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import FriendAvatar from "@/components/FriendAvatar";
 
 interface DayCarouselProps {
   onDaySelect?: (date: Date) => void;
   workoutCounts?: Readonly<Record<string, number>>;
+  friendsWithWorkouts?: Readonly<Record<string, number[]>>;
 }
 
 function getDateKey(date: Date): string {
@@ -22,7 +24,7 @@ function getCalendarDays(center: Date) {
   });
 }
 
-export default function DayCarousel({ onDaySelect, workoutCounts = {} }: DayCarouselProps) {
+export default function DayCarousel({ onDaySelect, workoutCounts = {}, friendsWithWorkouts = {} }: DayCarouselProps) {
   const [today] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [isDragging, setIsDragging] = useState(false);
@@ -101,6 +103,7 @@ export default function DayCarousel({ onDaySelect, workoutCounts = {} }: DayCaro
           const selected = dateKey === getDateKey(selectedDate);
           const isToday = dateKey === getDateKey(today);
           const workoutCount = workoutCounts[dateKey] ?? 0;
+          const friendIds = friendsWithWorkouts[dateKey] ?? [];
           const longDate = date.toLocaleDateString("en", {
             weekday: "long",
             month: "long",
@@ -139,6 +142,22 @@ export default function DayCarousel({ onDaySelect, workoutCounts = {} }: DayCaro
                   <span className={`h-1 w-1 rounded-full ${selected ? "bg-[#401721]" : "bg-[#f16b84]"}`} />
                 ) : null}
               </span>
+              {friendIds.length > 0 && (
+                <span className="flex gap-0.5 mt-0.5">
+                  {friendIds.slice(0, 3).map((friendId) => (
+                    <FriendAvatar
+                      key={friendId}
+                      userId={friendId}
+                      size={16}
+                    />
+                  ))}
+                  {friendIds.length > 3 && (
+                    <span className="text-[9px] font-semibold text-[#b8b3ba]">
+                      +{friendIds.length - 3}
+                    </span>
+                  )}
+                </span>
+              )}
             </button>
           );
         })}

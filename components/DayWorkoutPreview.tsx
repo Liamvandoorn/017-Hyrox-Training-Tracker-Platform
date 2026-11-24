@@ -1,7 +1,14 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import type { WorkoutRecord } from "@/lib/types";
+import ProfileAvatar from "@/components/ProfileAvatar";
+
+interface FriendWorkoutData {
+  userId: number;
+  displayName: string;
+  workouts: WorkoutRecord[];
+}
 
 interface DayWorkoutPreviewProps {
   date: Date;
@@ -26,12 +33,21 @@ function workoutTime(workout: WorkoutRecord): number {
   );
 }
 
+function getDateKey(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export default function DayWorkoutPreview({
   date,
   workouts,
   error,
   onClose,
 }: DayWorkoutPreviewProps) {
+  const [friendsWorkouts, setFriendsWorkouts] = useState<FriendWorkoutData[]>([]);
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
@@ -40,12 +56,34 @@ export default function DayWorkoutPreview({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose]);
 
+  useEffect(() => {
+    const dateKey = getDateKey(date);
+    async function loadFriendsWorkouts() {
+      try {
+        const response = await fetch(`/api/friends/workouts?date=${dateKey}`, { cache: "no-store" });
+        if (!response.ok) return;
+
+        const payload: unknown = await response.json();
+        if (typeof payload === "object" && payload !== null && "friendsWorkouts" in payload) {
+          const data = payload as { friendsWorkouts: FriendWorkoutData[] };
+          setFriendsWorkouts(data.friendsWorkouts);
+        }
+      } catch {
+        // silently fail
+      }
+    }
+
+    void loadFriendsWorkouts();
+  }, [date]);
+
   const dateLabel = date.toLocaleDateString("en", {
     weekday: "long",
     month: "long",
     day: "numeric",
     year: "numeric",
   });
+
+  const totalWorkouts = (workouts?.length ?? 0) + friendsWorkouts.reduce((acc, f) => acc + f.workouts.length, 0);
 
   return (
     <div className="fixed inset-0 z-[80] flex items-end justify-center bg-slate-900/30 px-3 pb-[max(100px,calc(env(safe-area-inset-bottom)+100px))] pt-3 backdrop-blur-[2px] sm:items-center sm:pb-3">
@@ -69,9 +107,9 @@ export default function DayWorkoutPreview({
             <h2 id="day-workout-preview-title" className="mt-1 text-lg font-semibold text-[#f3f2f4]">
               {dateLabel}
             </h2>
-            {workouts && (
+            {totalWorkouts > 0 && (
               <p className="mt-1 text-xs text-[#b8b3ba]">
-                {workouts.length} {workouts.length === 1 ? "workout" : "workouts"} logged
+                {totalWorkouts} {totalWorkouts === 1 ? "workout" : "workouts"} logged
               </p>
             )}
           </div>
@@ -93,51 +131,93 @@ export default function DayWorkoutPreview({
             <p role="alert" className="rounded-xl border border-[#714342] bg-[#3d2425] px-4 py-3 text-sm text-[#ffa8a4]">
               {error}
             </p>
-          ) : workouts === null ? (
-            <p role="status" className="py-8 text-center text-sm text-[#aaa5ad]">
-              Loading workouts...
-            </p>
-          ) : workouts.length === 0 ? (
-            <p className="rounded-xl border border-dashed border-white/10 px-4 py-8 text-center text-sm text-[#aaa5ad]">
-              No workouts logged for this day.
-            </p>
           ) : (
-            <div className="space-y-3">
-              {workouts.map((workout) => (
-                <article key={workout.id} className="rounded-xl border border-white/10 bg-[#27272b] p-3.5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h3 className="truncate text-sm font-semibold text-[#f3f2f4]">{workout.name}</h3>
-                      <p className="mt-1 text-[10px] font-medium text-[#aaa5ad]">
-                        {workout.source === "plan" ? "Planned workout" : "Own workout"}
-                        {" · "}
-                        {workout.sets.length} {workout.sets.length === 1 ? "set" : "sets"}
-                      </p>
+            <>
+              {workouts === null ? (
+                <p role="status" className="py-8 text-center text-sm text-[#aaa5ad]">
+                  Loading your workouts...
+                </p>
+              ) : workouts.length === 0 ? (
+                <p className="rounded-xl border border-dashed border-white/10 px-4 py-6 text-center text-sm text-[#aaa5ad]">
+                  No workouts logged by you for this day.
+                </p>
+              ) : (
+                <div className="mb-5 space-y-3">
+                  <h3 className="text-sm font-semibold text-[#f3f2f4]">Your workouts</h3>
+                  {workouts.map((workout) => (
+                    <article key={workout.id} className="rounded-xl border border-white/10 bg-[#27272b] p-3.5">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <h4 className="truncate text-sm font-semibold text-[#f3f2f4]">{workout.name}</h4>
+                          <p className="mt-1 text-[10px] font-medium text-[#aaa5ad]">
+                            {workout.source === "plan" ? "Planned workout" : "Own workout"}
+                            {" · "}
+                            {workout.sets.length} {workout.sets.length === 1 ? "set" : "sets"}
+                          </p>
+                        </div>
+                        <span className="shrink-0 rounded-full bg-[#27272b] px-2.5 py-1 text-[10px] font-semibold tabular-nums text-[#cbc7cd]">
+                          {formatDuration(workoutTime(workout))}
+                        </span>
+                      </div>
+                      <ol className="mt-3 space-y-2 border-t border-white/10 pt-3">
+                        {workout.sets.map((set, index) => (
+                          <li key={set.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs">
+                            <span className="font-medium text-[#e2e0e3]">
+                              {index + 1}. {set.category}
+                            </span>
+                            <span className="text-right text-[#b8b3ba]">
+                              {set.amount} {set.unit}
+                              {set.weightKg !== undefined ? ` · ${set.weightKg} kg` : ""}
+                              {" · "}
+                              {formatDuration(set.timeSeconds)}
+                              {" + "}
+                              {formatDuration(set.restSeconds)} rest
+                            </span>
+                          </li>
+                        ))}
+                      </ol>
+                    </article>
+                  ))}
+                </div>
+              )}
+
+              {friendsWorkouts.length > 0 && (
+                <div className="space-y-3 border-t border-white/10 pt-5">
+                  <h3 className="text-sm font-semibold text-[#f3f2f4]">Friends' workouts</h3>
+                  {friendsWorkouts.map((friend) => (
+                    <div key={friend.userId}>
+                      <div className="mb-2 flex items-center gap-2">
+                        <ProfileAvatar displayName={friend.displayName} size={24} />
+                        <span className="text-xs font-semibold text-[#e2e0e3]">{friend.displayName}</span>
+                      </div>
+                      <div className="space-y-2 ml-2">
+                        {friend.workouts.map((workout) => (
+                          <article key={workout.id} className="rounded-lg border border-white/5 bg-[#20202e] p-3">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0">
+                                <h4 className="truncate text-xs font-semibold text-[#f3f2f4]">{workout.name}</h4>
+                                <p className="mt-0.5 text-[9px] font-medium text-[#aaa5ad]">
+                                  {workout.sets.length} {workout.sets.length === 1 ? "set" : "sets"}
+                                </p>
+                              </div>
+                              <span className="shrink-0 rounded-full bg-[#27272b] px-2 py-0.5 text-[9px] font-semibold tabular-nums text-[#cbc7cd]">
+                                {formatDuration(workoutTime(workout))}
+                              </span>
+                            </div>
+                          </article>
+                        ))}
+                      </div>
                     </div>
-                    <span className="shrink-0 rounded-full bg-[#27272b] px-2.5 py-1 text-[10px] font-semibold tabular-nums text-[#cbc7cd]">
-                      {formatDuration(workoutTime(workout))}
-                    </span>
-                  </div>
-                  <ol className="mt-3 space-y-2 border-t border-white/10 pt-3">
-                    {workout.sets.map((set, index) => (
-                      <li key={set.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 text-xs">
-                        <span className="font-medium text-[#e2e0e3]">
-                          {index + 1}. {set.category}
-                        </span>
-                        <span className="text-right text-[#b8b3ba]">
-                          {set.amount} {set.unit}
-                          {set.weightKg !== undefined ? ` · ${set.weightKg} kg` : ""}
-                          {" · "}
-                          {formatDuration(set.timeSeconds)}
-                          {" + "}
-                          {formatDuration(set.restSeconds)} rest
-                        </span>
-                      </li>
-                    ))}
-                  </ol>
-                </article>
-              ))}
-            </div>
+                  ))}
+                </div>
+              )}
+
+              {workouts?.length === 0 && friendsWorkouts.length === 0 && (
+                <p className="rounded-xl border border-dashed border-white/10 px-4 py-8 text-center text-sm text-[#aaa5ad]">
+                  No workouts logged for this day.
+                </p>
+              )}
+            </>
           )}
         </div>
 

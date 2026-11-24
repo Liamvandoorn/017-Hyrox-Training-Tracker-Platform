@@ -1,5 +1,5 @@
 import { Pool } from "pg";
-import type { WorkoutPlan, WorkoutSet, WorkoutSource } from "@/lib/types";
+import type { WorkoutPlan, WorkoutSet, WorkoutSource, WorkoutRecord } from "@/lib/types";
 
 let pool: Pool | undefined;
 let schemaPool: Pool | undefined;
@@ -331,6 +331,17 @@ export async function getWorkouts(userId: number) {
   return result.rows;
 }
 
+export async function getUserWorkouts(userId: number, date: string): Promise<WorkoutRecord[]> {
+  const result = await query(
+    `SELECT id, name, date::text AS date, source, sets, created_at
+     FROM workouts
+     WHERE user_id = $1 AND date = $2
+     ORDER BY created_at DESC`,
+    [userId, date]
+  );
+  return result.rows;
+}
+
 export async function addWorkoutPlan(
   userId: number,
   name: string,
@@ -380,6 +391,63 @@ export async function getWorkoutPlans(userId: number): Promise<WorkoutPlan[]> {
   return result.rows;
 }
 
+export async function getFriends(userId: number): Promise<{ id: number; displayName: string }[]> {
+  const result = await query(
+    `SELECT u.id, u.display_name AS "displayName"
+     FROM user_friends f
+     JOIN app_users u ON u.id = f.friend_id
+     WHERE f.user_id = $1 AND u.active = TRUE
+     ORDER BY u.display_name ASC`,
+    [userId]
+  );
+  return result.rows;
+}
+
+export async function getFriendsWorkouts(
+  userIds: number[],
+  date: string
+): Promise<{ userId: number; displayName: string; workouts: WorkoutRecord[] }[]> {
+  if (userIds.length === 0) return [];
+  
+  const placeholders = userIds.map((_, i) => `$${i + 1}`).join(", ");
+  const result = await query(
+    `SELECT 
+       u.id AS user_id, 
+       u.display_name AS "displayName",
+       w.id, 
+       w.name, 
+       w.date, 
+       w.source, 
+       w.sets, 
+       w.created_at
+     FROM workouts w
+     JOIN app_users u ON u.id = w.user_id
+     WHERE w.user_id IN (${placeholders}) AND w.date = $${userIds.length + 1}
+     ORDER BY u.display_name, w.created_at DESC`,
+    [...userIds, date]
+  );
+
+  const grouped: Record<number, { userId: number; displayName: string; workouts: WorkoutRecord[] }> = {};
+  for (const row of result.rows) {
+    if (!grouped[row.user_id]) {
+      grouped[row.user_id] = {
+        userId: row.user_id,
+        displayName: row.displayName,
+        workouts: [],
+      };
+    }
+    grouped[row.user_id].workouts.push({
+      id: row.id,
+      name: row.name,
+      date: row.date,
+      source: row.source,
+      sets: row.sets,
+      created_at: row.created_at,
+    });
+  }
+  return Object.values(grouped);
+}
+
 export async function initializeDatabase() {
   const createTableQuery = `
     CREATE TABLE IF NOT EXISTS app_users (
@@ -392,6 +460,16 @@ export async function initializeDatabase() {
       avatar_content_type VARCHAR(32),
       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
     );
+
+    CREATE TABLE IF NOT EXISTS user_friends (
+      user_id INTEGER NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+      friend_id INTEGER NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+      PRIMARY KEY (user_id, friend_id),
+      CONSTRAINT no_self_friends CHECK (user_id != friend_id)
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_user_friends_user_id ON user_friends(user_id);
 
     ALTER TABLE app_users
       ADD COLUMN IF NOT EXISTS avatar_data BYTEA;
