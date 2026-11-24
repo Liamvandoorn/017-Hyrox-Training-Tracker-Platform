@@ -42,8 +42,8 @@ export default function PasscodeScreen({ setupRequired }: { setupRequired: boole
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(
           setupRequired
-            ? { displayName, setupKey, pin }
-            : { pin }
+          ? { displayName, setupKey, pin: value }
+          : { pin: value }
         ),
       });
       const payload: unknown = await response.json();
