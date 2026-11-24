@@ -89,10 +89,10 @@ export async function PATCH(request: NextRequest) {
   }
 
   const { id, active } = body as Record<string, unknown>;
-  if (!Number.isSafeInteger(id) || typeof id !== "number" || active !== false) {
-    return NextResponse.json({ error: "A valid account ID and inactive status are required" }, { status: 400 });
+  if (!Number.isSafeInteger(id) || typeof id !== "number" || typeof active !== "boolean") {
+    return NextResponse.json({ error: "A valid account ID and active status are required" }, { status: 400 });
   }
-  if (id === auth.user?.id) {
+  if (id === auth.user?.id && !active) {
     return NextResponse.json({ error: "You cannot deactivate your own account" }, { status: 400 });
   }
 
@@ -101,16 +101,16 @@ export async function PATCH(request: NextRequest) {
     if (!target) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
     }
-    if (target.role === "admin") {
+    if (target.role === "admin" && !active) {
       return NextResponse.json({ error: "Administrator accounts cannot be deactivated here" }, { status: 400 });
     }
-    const updated = await setUserActive(id, false);
+    const updated = await setUserActive(id, active);
     if (!updated) {
       return NextResponse.json({ error: "Account not found" }, { status: 404 });
     }
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("PATCH /api/admin/users error:", error);
-    return NextResponse.json({ error: "Could not deactivate account" }, { status: 500 });
+    return NextResponse.json({ error: "Could not update account" }, { status: 500 });
   }
 }

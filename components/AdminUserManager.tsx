@@ -74,6 +74,9 @@ export default function AdminUserManager() {
   const deactivateAccount = async (user: ManagedUser) => {
     setError("");
     setNotice("");
+    if (!window.confirm(`Deactivate ${user.displayName}'s account? They won't be able to sign in.`)) {
+      return;
+    }
     try {
       const response = await fetch("/api/admin/users", {
         method: "PATCH",
@@ -88,6 +91,26 @@ export default function AdminUserManager() {
       await loadUsers();
     } catch (updateError) {
       setError(updateError instanceof Error ? updateError.message : "Could not deactivate account.");
+    }
+  };
+
+  const reactivateAccount = async (user: ManagedUser) => {
+    setError("");
+    setNotice("");
+    try {
+      const response = await fetch("/api/admin/users", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: user.id, active: true }),
+      });
+      const payload: unknown = await response.json();
+      if (!response.ok) {
+        throw new Error(getErrorMessage(payload, "Could not reactivate account."));
+      }
+      setNotice(`${user.displayName}'s account was reactivated.`);
+      await loadUsers();
+    } catch (updateError) {
+      setError(updateError instanceof Error ? updateError.message : "Could not reactivate account.");
     }
   };
 
@@ -150,15 +173,26 @@ export default function AdminUserManager() {
                   {user.role} · {user.active ? "Active" : "Deactivated"}
                 </p>
               </div>
-              {user.role === "user" && user.active && (
-                <button
-                  type="button"
-                  onClick={() => void deactivateAccount(user)}
-                  className="rounded-lg border border-white/10 px-3 py-2 text-xs font-semibold text-[#d8d4da] hover:border-[#ef7890] hover:text-[#ff91a5]"
-                >
-                  Deactivate
-                </button>
-              )}
+              <div className="flex gap-2">
+                {user.role === "user" && user.active && (
+                  <button
+                    type="button"
+                    onClick={() => void deactivateAccount(user)}
+                    className="rounded-lg bg-red-900/40 px-4 py-2 text-xs font-semibold text-red-300 hover:bg-red-900/60 border border-red-800"
+                  >
+                    Deactivate
+                  </button>
+                )}
+                {user.role === "user" && !user.active && (
+                  <button
+                    type="button"
+                    onClick={() => void reactivateAccount(user)}
+                    className="rounded-lg bg-green-900/40 px-4 py-2 text-xs font-semibold text-green-300 hover:bg-green-900/60 border border-green-800"
+                  >
+                    Reactivate
+                  </button>
+                )}
+              </div>
             </li>
           ))}
         </ul>
