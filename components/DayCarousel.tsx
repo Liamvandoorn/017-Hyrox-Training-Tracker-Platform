@@ -2,11 +2,14 @@
 
 import { useEffect, useRef, useState } from "react";
 import FriendAvatar from "@/components/FriendAvatar";
+import ProfileAvatar from "@/components/ProfileAvatar";
 
 interface DayCarouselProps {
   onDaySelect?: (date: Date) => void;
   workoutCounts?: Readonly<Record<string, number>>;
   friendsWithWorkouts?: Readonly<Record<string, number[]>>;
+  currentUserId?: number;
+  currentUserDisplayName?: string;
 }
 
 function getDateKey(date: Date): string {
@@ -24,7 +27,7 @@ function getCalendarDays(center: Date) {
   });
 }
 
-export default function DayCarousel({ onDaySelect, workoutCounts = {}, friendsWithWorkouts = {} }: DayCarouselProps) {
+export default function DayCarousel({ onDaySelect, workoutCounts = {}, friendsWithWorkouts = {}, currentUserId, currentUserDisplayName = "You" }: DayCarouselProps) {
   const [today] = useState(() => new Date());
   const [selectedDate, setSelectedDate] = useState(() => new Date());
   const [isDragging, setIsDragging] = useState(false);
@@ -103,7 +106,7 @@ export default function DayCarousel({ onDaySelect, workoutCounts = {}, friendsWi
           const selected = dateKey === getDateKey(selectedDate);
           const isToday = dateKey === getDateKey(today);
           const workoutCount = workoutCounts[dateKey] ?? 0;
-          const friendIds = friendsWithWorkouts[dateKey] ?? [];
+          const profileIds = friendsWithWorkouts[dateKey] ?? [];
           const longDate = date.toLocaleDateString("en", {
             weekday: "long",
             month: "long",
@@ -130,8 +133,8 @@ export default function DayCarousel({ onDaySelect, workoutCounts = {}, friendsWi
               <span className={`text-sm font-semibold tabular-nums sm:text-base ${selected ? "text-[#290f18]" : "text-[#f3f2f4]"}`}>
                 {date.getDate()}
               </span>
-              {/* Only show dot/count indicator if there are NO friend workouts to display */}
-              {friendIds.length === 0 && (
+              {/* Only show dot/count indicator if there are NO profile avatars to display */}
+              {profileIds.length === 0 && (
                 <span className="flex h-3 items-center gap-0.5">
                   {workoutCount > 0 ? (
                     <>
@@ -145,42 +148,62 @@ export default function DayCarousel({ onDaySelect, workoutCounts = {}, friendsWi
                   ) : null}
                 </span>
               )}
-              {friendIds.length > 0 && (
+              {profileIds.length > 0 && (
                 <div className="flex items-center justify-center mt-0.5">
                   {/* Rule 1: Only 1 user - show larger avatar */}
-                  {friendIds.length === 1 && (
+                  {profileIds.length === 1 && (
                     <div className="flex gap-0.5">
-                      <FriendAvatar userId={friendIds[0]} size={18} />
+                      {profileIds[0] === currentUserId ? (
+                        <ProfileAvatar displayName={currentUserDisplayName} size={18} />
+                      ) : (
+                        <FriendAvatar userId={profileIds[0]} size={18} />
+                      )}
                     </div>
                   )}
                   
                   {/* Rule 2: 2-3 users - show adjacent avatars */}
-                  {friendIds.length > 1 && friendIds.length < 4 && (
+                  {profileIds.length > 1 && profileIds.length < 4 && (
                     <div className="flex gap-0.5">
-                      {friendIds.map((friendId) => (
-                        <FriendAvatar key={friendId} userId={friendId} size={16} />
+                      {profileIds.map((profileId) => (
+                        profileId === currentUserId ? (
+                          <ProfileAvatar key={profileId} displayName={currentUserDisplayName} size={16} />
+                        ) : (
+                          <FriendAvatar key={profileId} userId={profileId} size={16} />
+                        )
                       ))}
                     </div>
                   )}
                   
                   {/* Rule 3: 4+ users - show 3 avatars with overlay on 2nd showing count */}
-                  {friendIds.length >= 4 && (
+                  {profileIds.length >= 4 && (
                     <div className="relative flex gap-0.5">
                       {/* First avatar */}
-                      <FriendAvatar userId={friendIds[0]} size={16} />
+                      {profileIds[0] === currentUserId ? (
+                        <ProfileAvatar displayName={currentUserDisplayName} size={16} />
+                      ) : (
+                        <FriendAvatar userId={profileIds[0]} size={16} />
+                      )}
                       
                       {/* Second avatar with overlay */}
                       <div className="relative">
-                        <FriendAvatar userId={friendIds[1]} size={16} />
+                        {profileIds[1] === currentUserId ? (
+                          <ProfileAvatar displayName={currentUserDisplayName} size={16} />
+                        ) : (
+                          <FriendAvatar userId={profileIds[1]} size={16} />
+                        )}
                         <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center">
                           <span className="text-[8px] font-bold text-white">
-                            +{friendIds.length - 2}
+                            +{profileIds.length - 2}
                           </span>
                         </div>
                       </div>
                       
                       {/* Third avatar */}
-                      <FriendAvatar userId={friendIds[2]} size={16} />
+                      {profileIds[2] === currentUserId ? (
+                        <ProfileAvatar displayName={currentUserDisplayName} size={16} />
+                      ) : (
+                        <FriendAvatar userId={profileIds[2]} size={16} />
+                      )}
                     </div>
                   )}
                 </div>

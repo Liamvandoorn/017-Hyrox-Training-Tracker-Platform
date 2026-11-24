@@ -327,12 +327,21 @@ export default function Dashboard() {
         if (!response.ok) return;
 
         const payload: unknown = await response.json();
-        if (typeof payload === "object" && payload !== null && "friendsWorkouts" in payload) {
-          const data = payload as { friendsWorkouts: { userId: number; displayName: string }[] };
+        if (typeof payload === "object" && payload !== null && "friendsWorkouts" in payload && "userWorkouts" in payload) {
+          const data = payload as { userWorkouts: { id: number }[]; friendsWorkouts: { userId: number; displayName: string }[] };
           if (!cancelled) {
-            const friendIds = data.friendsWorkouts.map((f) => f.userId);
+            const profileIds: number[] = [];
+            
+            // Add current user's profile if they have workouts
+            if (data.userWorkouts.length > 0 && user?.id) {
+              profileIds.push(user.id);
+            }
+            
+            // Add friend profiles
+            profileIds.push(...data.friendsWorkouts.map((f) => f.userId));
+            
             const updated: Record<string, number[]> = { ...friendsWithWorkouts };
-            updated[dateKey] = friendIds;
+            updated[dateKey] = profileIds;
             setFriendsWithWorkouts(updated);
           }
         }
@@ -345,7 +354,7 @@ export default function Dashboard() {
     return () => {
       cancelled = true;
     };
-  }, [selectedDate]);
+  }, [selectedDate, user?.id, friendsWithWorkouts]);
 
   const runningTrend = useMemo(
     () => getWeeklyRunningTrend(workouts ?? []),
@@ -458,6 +467,8 @@ export default function Dashboard() {
         <DayCarousel
           workoutCounts={workoutCounts}
           friendsWithWorkouts={friendsWithWorkouts}
+          currentUserId={user?.id}
+          currentUserDisplayName={user?.displayName}
           onDaySelect={(date) => {
             setSelectedDate(date);
             setShowDayPreview(true);
