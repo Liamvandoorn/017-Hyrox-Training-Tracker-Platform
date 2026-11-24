@@ -57,7 +57,7 @@ export default function FriendsDirectory() {
           ) : users.length === 0 ? (
             <p className="text-center text-sm text-[#aaa5ad]">No users found</p>
           ) : (
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-3 gap-6">
               {users.map((user) => (
                 <button
                   key={user.id}
@@ -66,12 +66,12 @@ export default function FriendsDirectory() {
                     setSelectedUserId(user.id);
                     setSelectedUserName(user.displayName);
                   }}
-                  className="flex flex-col items-center gap-2 rounded-lg p-2 transition-colors hover:bg-[#27272b]"
+                  className="flex flex-col items-center gap-3 rounded-2xl bg-[#27272b] p-4 transition-all hover:bg-[#303034] hover:scale-105"
                 >
                   <div className="relative">
-                    <ProfileAvatar displayName={user.displayName} size={80} />
+                    <ProfileAvatar displayName={user.displayName} size={100} />
                   </div>
-                  <p className="text-center text-xs font-medium text-[#d8d4da] line-clamp-2">
+                  <p className="text-center text-sm font-medium text-[#d8d4da] line-clamp-2">
                     {user.displayName}
                   </p>
                 </button>
