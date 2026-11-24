@@ -2,11 +2,11 @@
 
 *100% Vibe coded* But i'll leave it forkable for anyone wanting their own Hyrox Tracker without needing to spend tokens for the initial setup.
 
-A progressive web app (PWA) built with Next.js for tracking Hyrox training sessions. Secure passcode protection, offline-capable, and stores all training data in a Neon PostgreSQL database.
+A progressive web app (PWA) built with Next.js for tracking Hyrox training sessions. Admin-provisioned users sign in with unique PINs, and each user's training data is scoped separately in Neon PostgreSQL.
 
 ## Features
 
-- 🔐 **Passcode Protected** - Secure access with customizable passcode
+- 🔐 **Multi-user PIN Sign-in** - Admin-provisioned accounts with individual training histories
 - 📱 **PWA Ready** - Works on mobile and desktop, installable as an app
 - 📊 **Track Training** - Log exercises, duration, distance, and notes
 - 🏋️ **Workout Builder** - Follow saved plans or build a session from editable sets
@@ -39,6 +39,15 @@ npm install
 ### 3. Configure Environment Variables
 
 Create a `.env.local` file in the root directory:
+```env
+DATABASE_URL=postgresql://...
+PIN_PEPPER=replace-with-a-random-secret-at-least-32-characters
+ADMIN_BOOTSTRAP_KEY=replace-with-a-different-random-secret-at-least-32-characters
+```
+
+Generate both secrets separately (for example, with `openssl rand -hex 32`).
+Keep `PIN_PEPPER` stable; changing it invalidates all PINs. Remove
+`ADMIN_BOOTSTRAP_KEY` after creating the first administrator.
 
 
 ### 4. Initialize the Database
@@ -49,7 +58,7 @@ npm run init-db
 
 ### 5. Access the Application
 
-Open [http://localhost:3000](http://localhost:3000) and enter the passcode to access the app.
+Open [http://localhost:3000](http://localhost:3000) and create the first administrator with the one-time setup key. The administrator can then create member accounts from Settings.
 
 ## Exercises Available
 
@@ -69,7 +78,7 @@ Open [http://localhost:3000](http://localhost:3000) and enter the passcode to ac
 
 ## Usage
 
-1. **Unlock** - Enter the passcode to access the app
+1. **Sign in** - Enter your administrator-issued unique PIN. Accounts are created by an administrator; there is no self-registration.
 2. **Log Workout** - Choose Follow plan or Log own workout from the slide-up menu above the navigation
 3. **Build sets** - Use the docked composer to enter distance, weight, or reps; sled pushes/pulls, sandbag lunges, and farmer carries take both distance and weight (farmer carry weight is per kettlebell), while wall balls include a weight field. Enter time and rest manually, or tap **Time** to start a stopwatch and tap again to insert the elapsed time. Adding a set while timing uses the current elapsed time.
 4. **Complete or abort** - Tap each numbered circle as you finish a set to start its rest countdown; finish to save a recap or abort after confirming. Skip rest if needed. Dashboard and Settings navigation is disabled during a workout. The in-progress workout is also saved in the current browser tab and restored if you refresh or leave the page; it is cleared when you finish or abort.
@@ -95,7 +104,7 @@ The dashboard's exercise charts show the fastest completed timed set per day, ev
 
 1. Push your code to GitHub
 2. Connect your repository to Vercel
-3. Add your `DATABASE_URL` and `NEXT_PUBLIC_PASSCODE` environment variables in project settings
+3. Add `DATABASE_URL`, `PIN_PEPPER`, and `ADMIN_BOOTSTRAP_KEY` as server-side environment variables
 4. Deploy!
 
 ### Docker
@@ -182,7 +191,7 @@ Completed workouts are saved through `POST /api/workouts`, and reusable plans th
 
 ## Security Notes
 
-⚠️ **Important**: The current implementation uses a simple passcode for demo purposes. For production:
+⚠️ **Important**: Sign-in uses 4-digit PINs as the only account identifier. PINs must be unique and are weak credentials; use this only for low-risk training data.
 
 1. Implement proper authentication (OAuth, JWT, etc.)
 2. Use environment variables for sensitive data

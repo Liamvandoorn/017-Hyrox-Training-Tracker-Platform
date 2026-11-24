@@ -1,21 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
+import AdminUserManager from "@/components/AdminUserManager";
+import { useAuth } from "@/components/AuthProvider";
 import WorkoutHistoryManager from "@/components/WorkoutHistoryManager";
 import WorkoutPlanBuilder from "@/components/WorkoutPlanBuilder";
 
 export default function SettingsPage() {
-  const [passcode, setPasscode] = useState("");
-  const [showPasscode, setShowPasscode] = useState(false);
-  const [saveMessage, setSaveMessage] = useState("");
-
-  const handleSavePasscode = () => {
-    // Placeholder for passcode update logic
-    setSaveMessage("Settings saved successfully.");
-    setTimeout(() => setSaveMessage(""), 3000);
-  };
+  const { user } = useAuth();
 
   return (
     <div className="min-h-screen bg-transparent pb-28 pt-5">
@@ -29,50 +22,14 @@ export default function SettingsPage() {
 
       {/* Main Content */}
       <div className="max-w-2xl mx-auto px-4 py-8">
-        {saveMessage && (
-          <div className="mb-6 rounded-xl border border-[#36594a] bg-[#1d3028] px-5 py-4 text-sm text-[#a6e6c1]">
-            {saveMessage}
-          </div>
-        )}
-
-        {/* Security Section */}
         <div className="mb-5 rounded-[1.7rem] border border-white/10 bg-[#1c1c1f] p-5 shadow-sm sm:p-7">
-          <h2 className="mb-6 flex items-center gap-2 text-lg font-semibold text-[#f3f2f4]">Security</h2>
-
-          <div className="space-y-6">
-            <div>
-              <label className="mb-3 block text-sm font-semibold text-[#e2e0e3]">
-                App Passcode
-              </label>
-              <div className="flex gap-2">
-                <div className="flex-1 relative">
-                  <input
-                    type={showPasscode ? "text" : "password"}
-                    value={passcode}
-                    onChange={(e) => setPasscode(e.target.value)}
-                    placeholder="Current passcode"
-                    className="w-full rounded-xl border border-white/10 bg-[#27272b] px-4 py-3 text-[#f3f2f4] outline-none transition-colors placeholder:text-[#aaa5ad] focus:border-[#ef7890]"
-                  />
-                  <button
-                    onClick={() => setShowPasscode(!showPasscode)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-[#aaa5ad] hover:text-[#e2e0e3]"
-                  >
-                    {showPasscode ? "Hide" : "Show"}
-                  </button>
-                </div>
-                <button
-                  onClick={handleSavePasscode}
-                  className="rounded-xl bg-[#f16b84] px-5 py-3 font-semibold text-[#290f18] transition-colors hover:bg-[#ff91a5]"
-                >
-                  Update
-                </button>
-              </div>
-              <p className="mt-2 text-xs text-[#aaa5ad]">
-                This is your app login passcode. Keep it secure!
-              </p>
-            </div>
-          </div>
+          <h2 className="text-lg font-semibold text-[#f3f2f4]">Signed-in account</h2>
+          <p className="mt-2 text-sm text-[#aaa5ad]">
+            {user?.displayName} · {user?.role === "admin" ? "Administrator" : "Member"}
+          </p>
         </div>
+
+        {user?.role === "admin" && <AdminUserManager />}
 
         <WorkoutPlanBuilder />
 

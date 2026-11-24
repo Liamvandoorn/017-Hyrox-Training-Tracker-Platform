@@ -2,12 +2,21 @@
 
 ## 🎨 Customizing the Application
 
-### Changing the Passcode
-Edit `.env.local`:
+### PIN sign-in configuration
+Set server-only secrets in `.env.local`:
 ```env
-NEXT_PUBLIC_PASSCODE=your-new-passcode
+PIN_PEPPER=replace-with-a-random-secret-at-least-32-characters
+ADMIN_BOOTSTRAP_KEY=replace-with-a-different-random-secret-at-least-32-characters
 ```
-Then restart the development server.
+
+Run `npm run init-db`, start the app, and use the bootstrap key to create the
+first administrator. Remove `ADMIN_BOOTSTRAP_KEY` after setup. Keep
+`PIN_PEPPER` unchanged; rotating it invalidates all existing PINs. Admins
+provision and deactivate member accounts from Settings. PINs are globally
+unique because users sign in without a separate account identifier.
+
+Use a fresh Neon database for this schema. Every training record is scoped to
+its owner, and old shared tables are not automatically migrated.
 
 ### Adding Custom Exercises
 Edit `components/AddSessionForm.tsx`, line ~80:
@@ -107,38 +116,10 @@ Create `components/StatsPanel.tsx` and import in `app/page.tsx`
 
 ## 🔒 Enhancing Security
 
-### Add Session Timeout
-Edit `components/PasscodeScreen.tsx`:
-```ts
-useEffect(() => {
-  const timer = setTimeout(() => {
-    localStorage.removeItem('hyrox_authenticated');
-    location.reload();
-  }, 30 * 60 * 1000); // 30 minutes
-  
-  return () => clearTimeout(timer);
-}, []);
-```
-
-### Add Rate Limiting
-Create `lib/rateLimit.ts`:
-```ts
-const attempts = new Map();
-const LIMIT = 5;
-const WINDOW = 60000; // 1 minute
-
-export function checkRateLimit(key: string): boolean {
-  const now = Date.now();
-  const record = attempts.get(key) || [];
-  const valid = record.filter(t => now - t < WINDOW);
-  
-  if (valid.length >= LIMIT) return false;
-  
-  valid.push(now);
-  attempts.set(key, valid);
-  return true;
-}
-```
+### PIN sign-in protections
+Sessions use HttpOnly cookies and are checked by every data API. Failed
+attempts are rate-limited in the database. Four-digit PINs remain weak
+credentials and should only be used for low-risk training data.
 
 ---
 
@@ -182,13 +163,17 @@ Add to `app/layout.tsx`:
 ## 🧪 Testing the Application
 
 ### Manual Testing Checklist
-- [ ] Login with correct passcode
-- [ ] Try wrong passcode (should error)
+- [ ] Create the first administrator with the bootstrap key
+- [ ] Create two member accounts with different PINs
+- [ ] Confirm duplicate PINs are rejected
+- [ ] Sign in with each PIN and confirm only that user's workouts and plans appear
+- [ ] Try incorrect PINs repeatedly and verify temporary rate limiting
+- [ ] Deactivate a member and verify their existing session is rejected
 - [ ] Add a training session with all fields
 - [ ] Add a session with only required fields
 - [ ] View sessions in list (newest first)
 - [ ] Delete a session
-- [ ] Logout and verify auth clears
+- [ ] Sign out and verify the session cookie is cleared
 - [ ] Refresh page while logged in (should persist)
 - [ ] Test on mobile device
 
@@ -284,7 +269,7 @@ npm run build -- --debug
 
 ### Phase 1: MVP (Current)
 - ✅ Basic training logging
-- ✅ Passcode protection
+- ✅ Multi-user PIN sign-in
 - ✅ Database persistence
 
 ### Phase 2: Enhanced Features

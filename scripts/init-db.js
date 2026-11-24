@@ -18,8 +18,34 @@ async function initializeDatabase() {
     console.log('Initializing database...');
     
     const createTableQuery = `
+      CREATE TABLE IF NOT EXISTS app_users (
+        id SERIAL PRIMARY KEY,
+        display_name VARCHAR(60) NOT NULL,
+        pin_digest CHAR(64) NOT NULL UNIQUE,
+        role VARCHAR(10) NOT NULL DEFAULT 'user' CHECK (role IN ('admin', 'user')),
+        active BOOLEAN NOT NULL DEFAULT TRUE,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE TABLE IF NOT EXISTS app_sessions (
+        token_digest CHAR(64) PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
+        expires_at TIMESTAMPTZ NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+      );
+
+      CREATE INDEX IF NOT EXISTS idx_app_sessions_user_id ON app_sessions(user_id);
+
+      CREATE TABLE IF NOT EXISTS auth_login_attempts (
+        attempt_key CHAR(64) PRIMARY KEY,
+        window_started_at TIMESTAMPTZ NOT NULL,
+        failed_attempts INTEGER NOT NULL DEFAULT 0,
+        blocked_until TIMESTAMPTZ
+      );
+
       CREATE TABLE IF NOT EXISTS training_sessions (
         id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
         date DATE NOT NULL,
         exercise VARCHAR(100) NOT NULL,
         duration INTEGER NOT NULL,
@@ -29,10 +55,12 @@ async function initializeDatabase() {
         updated_at TIMESTAMP DEFAULT NOW()
       );
 
-      CREATE INDEX IF NOT EXISTS idx_training_sessions_date ON training_sessions(date);
+      CREATE INDEX IF NOT EXISTS idx_training_sessions_user_date
+        ON training_sessions(user_id, date DESC);
 
       CREATE TABLE IF NOT EXISTS workouts (
         id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
         name VARCHAR(120) NOT NULL,
         date DATE NOT NULL,
         source VARCHAR(10) NOT NULL CHECK (source IN ('own', 'plan')),
@@ -40,18 +68,20 @@ async function initializeDatabase() {
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
-      CREATE INDEX IF NOT EXISTS idx_workouts_date ON workouts(date DESC);
+      CREATE INDEX IF NOT EXISTS idx_workouts_user_date
+        ON workouts(user_id, date DESC);
 
       CREATE TABLE IF NOT EXISTS workout_plans (
         id SERIAL PRIMARY KEY,
+        user_id INTEGER NOT NULL REFERENCES app_users(id) ON DELETE CASCADE,
         name VARCHAR(120) NOT NULL,
         sets JSONB NOT NULL CHECK (jsonb_typeof(sets) = 'array'),
         created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
         updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
       );
 
-      CREATE INDEX IF NOT EXISTS idx_workout_plans_updated_at
-        ON workout_plans(updated_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_workout_plans_user_updated_at
+        ON workout_plans(user_id, updated_at DESC);
     `;
 
     await pool.query(createTableQuery);

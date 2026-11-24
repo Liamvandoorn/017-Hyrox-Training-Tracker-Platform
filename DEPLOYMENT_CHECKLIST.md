@@ -20,18 +20,19 @@
 ### Environment Variables
 - [ ] `.env.local` file created
 - [ ] DATABASE_URL is correct and secret
-- [ ] NEXT_PUBLIC_PASSCODE set to secure value
+- [ ] PIN_PEPPER and ADMIN_BOOTSTRAP_KEY set as server-only secrets
 - [ ] `.env.local` is in `.gitignore` (already done)
 - [ ] No secrets committed to git
 
 ### Local Testing
 - [ ] `npm run dev` starts without errors
 - [ ] Can access http://localhost:3000
-- [ ] Can enter passcode and log in
+- [ ] Can create the first administrator and sign in with its PIN
+- [ ] Can create two users and verify their data is isolated
 - [ ] Can add a training session
 - [ ] Can view sessions in database
 - [ ] Can delete a session
-- [ ] Can logout successfully
+- [ ] Can sign out successfully
 
 ---
 
@@ -49,14 +50,15 @@
 - [ ] Repository imported to Vercel
 - [ ] Environment variables added in Vercel dashboard:
   - [ ] DATABASE_URL
-  - [ ] NEXT_PUBLIC_PASSCODE
+  - [ ] PIN_PEPPER
+  - [ ] ADMIN_BOOTSTRAP_KEY (remove after first administrator setup)
 - [ ] Build settings verified (defaults are fine)
 - [ ] Deployment initiated
 
 ### Post-Deployment
 - [ ] Deployment succeeded (check Vercel dashboard)
 - [ ] Production URL accessible
-- [ ] Can login with passcode
+- [ ] Can sign in with a user PIN
 - [ ] Can add/view/delete sessions
 - [ ] Database connection working
 - [ ] No errors in Vercel logs
@@ -105,7 +107,8 @@
 - [ ] Input validation on all forms
 
 ### Environment Security
-- [ ] Strong passcode set (min 6+ characters)
+- [ ] PIN_PEPPER and bootstrap key are long, random, server-only secrets
+- [ ] PINs are unique and users understand that four digits are weak credentials
 - [ ] DATABASE_URL never logged
 - [ ] Environment variables only in Vercel
 - [ ] HTTPS enforced (automatic on Vercel)
@@ -115,7 +118,7 @@
 - [ ] Database backups enabled in Neon
 - [ ] Regular updates planned
 - [ ] No sensitive data in notes field
-- [ ] User's browser clears on logout
+- [ ] Session cookie is cleared on sign out
 
 ---
 
@@ -134,14 +137,15 @@
 ## 🧪 Testing Checklist
 
 ### Functional Testing
-- [ ] Passcode login works
-- [ ] Correct passcode grants access
-- [ ] Wrong passcode denied
+- [ ] Admin bootstrap works only once
+- [ ] Correct PIN grants access
+- [ ] Wrong PIN is denied and rate-limited
+- [ ] A user cannot read or modify another user's records
 - [ ] Add session with all fields
 - [ ] Add session with min required fields
 - [ ] Sessions persist after refresh
 - [ ] Delete session works
-- [ ] Logout clears session
+- [ ] Sign out clears session
 - [ ] Empty state displays properly
 
 ### Data Testing

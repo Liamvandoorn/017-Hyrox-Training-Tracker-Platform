@@ -1,29 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/AuthProvider";
 import PasscodeScreen from "@/components/PasscodeScreen";
 
 export default function Home() {
-  const [isLoading, setIsLoading] = useState(true);
-  const router = useRouter();
+  const { setupRequired, loading, error } = useAuth();
 
-  useEffect(() => {
-    // Check if user is already authenticated
-    const isAuth = localStorage.getItem("hyrox_authenticated") === "true";
-    if (isAuth) {
-      router.replace("/dashboard");
-    } else {
-      setIsLoading(false);
-    }
-  }, [router]);
-
-  const handleUnlock = () => {
-    localStorage.setItem("hyrox_authenticated", "true");
-    router.replace("/dashboard");
-  };
-
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-transparent flex items-center justify-center">
         <div className="animate-pulse">
@@ -33,5 +16,13 @@ export default function Home() {
     );
   }
 
-  return <PasscodeScreen onUnlock={handleUnlock} />;
+  if (error) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-6 text-center text-sm text-[#ffa8a4]" role="alert">
+        {error}. Check the database configuration and refresh.
+      </div>
+    );
+  }
+
+  return <PasscodeScreen setupRequired={setupRequired} />;
 }

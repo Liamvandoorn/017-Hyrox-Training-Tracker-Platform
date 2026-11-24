@@ -21,12 +21,17 @@ Go to [Neon Console](https://console.neon.tech):
 Create `.env.local`:
 ```env
 DATABASE_URL=postgresql://...
-NEXT_PUBLIC_PASSCODE=1234
+PIN_PEPPER=replace-with-a-random-secret-at-least-32-characters
+ADMIN_BOOTSTRAP_KEY=replace-with-a-different-random-secret-at-least-32-characters
 ```
+
+Generate both secrets separately (for example, with `openssl rand -hex 32`).
+Keep `PIN_PEPPER` stable: changing it invalidates every account PIN. Remove
+`ADMIN_BOOTSTRAP_KEY` after creating the first administrator.
 
 ### 4. **Initialize Database**
 
-Option A - Via npm script (add to package.json first):
+Option A - Via npm script:
 ```bash
 npm run init-db
 ```
@@ -41,7 +46,8 @@ node scripts/init-db.js
 npm run dev
 ```
 
-Visit `http://localhost:3000` → Enter passcode `1234`
+Visit `http://localhost:3000` and create the first administrator using the
+bootstrap key. The administrator can then create accounts in Settings.
 
 ---
 
@@ -59,10 +65,10 @@ Visit `http://localhost:3000` → Enter passcode `1234`
 
 **Before deploying to production:**
 
-1. Change `NEXT_PUBLIC_PASSCODE` in `.env.local`
-2. Use a strong, random passcode
-3. Never commit `.env.local` to git
-4. Add `.env.local` to `.gitignore` ✓ (already done)
+1. Keep `PIN_PEPPER` and `ADMIN_BOOTSTRAP_KEY` server-side and out of git
+2. Remove `ADMIN_BOOTSTRAP_KEY` after creating the first administrator
+3. Use a fresh Neon database for the owner-scoped schema
+4. Remember 4-digit PINs are weak credentials
 
 ---
 
@@ -80,8 +86,8 @@ Visit `http://localhost:3000` → Enter passcode `1234`
 - Click "Delete" to remove a session
 
 ### Logout
-- Click "Logout" button in top right
-- App clears from device memory
+- Click the sign-out button on the dashboard
+- The server session is revoked and the browser returns to sign in
 
 ---
 
@@ -146,10 +152,12 @@ lib/
 
 ## ✨ Features Explained
 
-**Passcode Protection**
-- All sessions stored in browser memory
-- Logout clears data
-- Persistent: Refresh keeps you logged in
+**PIN Sign-in**
+- Administrators create member accounts and assign each a unique 4-digit PIN.
+- Users sign in with only their PIN; no self-registration is available.
+- Sessions use an HttpOnly cookie and are enforced by the API.
+- Login attempts are temporarily rate-limited.
+- Four-digit PINs are weak credentials; use this only for low-risk training data.
 
 **Dark Theme**
 - Professional dark grey (#2a2a2a) background

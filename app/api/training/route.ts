@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getTrainingSessions, addTrainingSession, deleteTrainingSession } from "@/lib/db";
+import { getCurrentUser } from "@/lib/session";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(request: NextRequest) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Sign in required" }, { status: 401 });
+  }
+
   try {
-    const sessions = await getTrainingSessions();
+    const sessions = await getTrainingSessions(user.id);
     return NextResponse.json(sessions);
   } catch (error) {
     console.error("GET /api/training error:", error);
@@ -17,6 +23,11 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Sign in required" }, { status: 401 });
+  }
+
   try {
     const body = await request.json();
     const { date, exercise, duration, distance, notes } = body;
@@ -29,6 +40,7 @@ export async function POST(request: NextRequest) {
     }
 
     const session = await addTrainingSession(
+      user.id,
       date,
       exercise,
       parseInt(duration),
@@ -47,6 +59,11 @@ export async function POST(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Sign in required" }, { status: 401 });
+  }
+
   try {
     const { searchParams } = new URL(request.url);
     const id = searchParams.get("id");
@@ -58,7 +75,7 @@ export async function DELETE(request: NextRequest) {
       );
     }
 
-    await deleteTrainingSession(parseInt(id));
+    await deleteTrainingSession(user.id, parseInt(id));
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("DELETE /api/training error:", error);

@@ -2,14 +2,14 @@
 
 ## ✅ Project Complete
 
-A fully functional Next.js PWA (Progressive Web App) for tracking Hyrox training sessions has been created with passcode protection and Neon PostgreSQL database integration.
+A Next.js PWA for tracking Hyrox training sessions with admin-provisioned PIN accounts and owner-scoped Neon PostgreSQL data.
 
 ---
 
 ## 🎯 What Was Built
 
 ### Core Features Implemented
-1. **🔐 Passcode Authentication** - Secure access gate to the application
+1. **🔐 Multi-user PIN Sign-in** - Admin-provisioned accounts and server-managed sessions
 2. **📱 PWA Ready** - Mobile installable with web app manifest
 3. **📊 Training Session Management** - Add, view, and delete training sessions
 4. **🗄️ Neon Database Integration** - PostgreSQL database for persistent storage
@@ -82,7 +82,8 @@ npm install
 Create `.env.local`:
 ```env
 DATABASE_URL=postgresql://[your-connection-string]
-NEXT_PUBLIC_PASSCODE=1234
+PIN_PEPPER=replace-with-a-random-secret-at-least-32-characters
+ADMIN_BOOTSTRAP_KEY=replace-with-a-different-random-secret-at-least-32-characters
 ```
 
 ### 4. Initialize Database
@@ -95,8 +96,7 @@ npm run init-db
 npm run dev
 ```
 
-Visit: `http://localhost:3000`
-Passcode: `1234`
+Visit `http://localhost:3000` and create the first administrator with the one-time setup key.
 
 ---
 
@@ -151,9 +151,9 @@ CREATE INDEX idx_training_sessions_date ON training_sessions(date);
 ## 🔐 Security Considerations
 
 ### Current Implementation (Demo)
-- Simple passcode protection
-- Client-side session management
-- Stored in localStorage
+- 4-digit PIN-only sign-in with administrator-provisioned accounts
+- Server-issued HttpOnly sessions
+- Training records scoped to the signed-in user
 
 ### Production Recommendations
 1. **Authentication**: Implement OAuth 2.0 or JWT
@@ -161,7 +161,7 @@ CREATE INDEX idx_training_sessions_date ON training_sessions(date);
 3. **Data Validation**: Strict input sanitization
 4. **Environment**: Use secure secret management
 5. **HTTPS**: Enforce in production
-6. **Password**: Use strong, random passcode in env
+6. **PINs**: PIN-only sign-in uses weak 4-digit credentials; use only for low-risk training data.
 
 ---
 
@@ -186,7 +186,7 @@ CREATE INDEX idx_training_sessions_date ON training_sessions(date);
 ### Vercel (Recommended)
 ```bash
 vercel
-# Add DATABASE_URL and NEXT_PUBLIC_PASSCODE in dashboard
+# Add DATABASE_URL, PIN_PEPPER, and ADMIN_BOOTSTRAP_KEY in the deployment dashboard
 ```
 
 ### Self-Hosted
@@ -244,7 +244,7 @@ Delete training session by ID
 3. **Add Session** → Form fills with today's date
 4. **View Sessions** → Sorted by most recent
 5. **Delete Session** → Confirmation (one-click)
-6. **Logout** → Clear session, return to passcode
+6. **Sign out** → Revoke the server session and return to PIN sign-in
 
 ---
 
@@ -278,7 +278,8 @@ npm run init-db      # Initialize database tables
 - [ ] Test with `npm run dev`
 
 ### Short Term (For Production)
-- [ ] Change passcode in .env.local
+- [ ] Configure PIN_PEPPER and ADMIN_BOOTSTRAP_KEY as server-side secrets
+- [ ] Create the first administrator and remove ADMIN_BOOTSTRAP_KEY
 - [ ] Deploy to Vercel
 - [ ] Test on mobile devices
 - [ ] Add PWA icons

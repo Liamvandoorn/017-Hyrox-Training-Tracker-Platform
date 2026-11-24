@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useAuth } from "@/components/AuthProvider";
 import AITrainingSummary from "@/components/AITrainingSummary";
 import BestTimesBox, { type BestTimeKey, type BestTimes } from "@/components/BestTimesBox";
 import ChartContainer from "@/components/ChartContainer";
@@ -11,6 +11,7 @@ import Navbar from "@/components/Navbar";
 import SimpleChart from "@/components/SimpleChart";
 import TotalTimeBox from "@/components/TotalTimeBox";
 import { WORKOUT_CATEGORIES } from "@/lib/types";
+import { WORKOUT_DRAFT_KEY } from "@/lib/types";
 import type { WorkoutRecord, WorkoutSet } from "@/lib/types";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -279,7 +280,8 @@ export default function Dashboard() {
   const [workouts, setWorkouts] = useState<WorkoutRecord[] | null>(null);
   const [workoutsError, setWorkoutsError] = useState<string | null>(null);
   const [showDayPreview, setShowDayPreview] = useState(false);
-  const router = useRouter();
+  const [authError, setAuthError] = useState("");
+  const { user } = useAuth();
 
   useEffect(() => {
     let cancelled = false;
@@ -344,9 +346,20 @@ export default function Dashboard() {
     : null;
   const recentSimulationHistory = simulationHistory.slice(-WEEK_COUNT);
 
-  const signOut = () => {
-    localStorage.removeItem("hyrox_authenticated");
-    router.replace("/");
+  const signOut = async () => {
+    setAuthError("");
+    try {
+      const response = await fetch("/api/auth/logout", { method: "POST" });
+      if (!response.ok) {
+        throw new Error("Could not sign out. Please try again.");
+      }
+      sessionStorage.removeItem(WORKOUT_DRAFT_KEY);
+      sessionStorage.removeItem("hyrox_workout_flow");
+      localStorage.removeItem("hyrox_authenticated");
+      window.location.assign("/");
+    } catch (error) {
+      setAuthError(error instanceof Error ? error.message : "Could not sign out");
+    }
   };
 
   const runningMessage = workoutsError
@@ -383,7 +396,7 @@ export default function Dashboard() {
           <div>
             <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#f69aaa]">HYROX · TRAINING LOG</p>
             <h1 className="mt-1 text-[23px] font-semibold tracking-[-0.04em] text-[#f2eff2] sm:text-[28px]">
-              Welcome back Marta!
+              Welcome back {user?.displayName ?? "athlete"}!
             </h1>
             <p className="mt-0.5 text-xs text-[#aaa5ad] sm:text-sm">
               {selectedDate.toLocaleDateString("en", { weekday: "long", month: "long", day: "numeric" })}
@@ -401,6 +414,11 @@ export default function Dashboard() {
             </svg>
           </button>
         </header>
+        {authError && (
+          <p role="alert" className="rounded-xl border border-[#714342] bg-[#3d2425] px-4 py-3 text-sm text-[#ffa8a4]">
+            {authError}
+          </p>
+        )}
 
         <DayCarousel
           workoutCounts={workoutCounts}

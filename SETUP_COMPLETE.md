@@ -19,10 +19,9 @@ Your **Hyrox Training Tracker PWA** is fully built and ready to deploy.
 - Indexed queries for performance
 
 ✅ **Security Features**
-- Passcode authentication
-- Environment variable configuration
-- Session-based persistence
-- localStorage for client-side storage
+- Per-user PIN authentication with server-side sessions
+- Owner-scoped training records
+- Database-backed login rate limiting
 
 ✅ **Progressive Web App**
 - Web app manifest for installation
@@ -47,8 +46,7 @@ Your **Hyrox Training Tracker PWA** is fully built and ready to deploy.
 npm install
 npm run init-db
 npm run dev
-# Visit http://localhost:3000
-# Passcode: 1234
+# Visit http://localhost:3000 and set up the first administrator
 ```
 → See [QUICKSTART.md](./QUICKSTART.md)
 
@@ -76,7 +74,7 @@ npm run dev
 ### Recommended Setup
 - [ ] GitHub account (for Vercel deployment)
 - [ ] Vercel account (free at vercel.com)
-- [ ] Custom passcode in `.env.local`
+- [ ] PIN_PEPPER and ADMIN_BOOTSTRAP_KEY configured in `.env.local`
 
 ---
 
@@ -90,13 +88,13 @@ app/                    → Next.js application
 └── api/training/      → API endpoints
 
 components/            → React components
-├── PasscodeScreen     → Login screen
+├── PasscodeScreen     → PIN sign-in and first-admin setup
 ├── AddSessionForm     → Training form
 └── SessionList        → Sessions display
 
 lib/                   → Utilities
 ├── db.ts             → Database queries
-├── auth.ts           → Passcode logic
+├── auth.ts           → PIN hashing and session token helpers
 └── types.ts          → TypeScript types
 
 public/                → Static files
@@ -113,7 +111,7 @@ scripts/               → Utilities
 ### ✅ Local Setup Works When:
 - `npm run dev` starts without errors
 - Can access http://localhost:3000
-- Can login with passcode
+- Can create the first administrator and sign in with PIN
 - Can add/view/delete training sessions
 - Can logout
 
@@ -146,12 +144,13 @@ scripts/               → Utilities
 ## 🔐 Security Notes
 
 ### Current (Demo)
-- Simple passcode protection
-- Client-side session management
+- 4-digit PIN-only sign-in with administrator-provisioned accounts
+- Server-issued HttpOnly sessions
 - `.env.local` based configuration
 
 ### For Production
-- Change passcode to something strong
+- Use a fresh Neon database for owner-scoped tables
+- Set and retain PIN_PEPPER; remove ADMIN_BOOTSTRAP_KEY after first setup
 - Keep `.env.local` out of git ✅ (already done)
 - Deploy with HTTPS ✅ (Vercel auto-enables)
 - Follow [DEVELOPMENT.md](./DEVELOPMENT.md) security enhancements
@@ -193,7 +192,8 @@ npm run lint            # Check code
 ### Change Passcode
 Edit `.env.local`:
 ```env
-NEXT_PUBLIC_PASSCODE=your-secret-code
+PIN_PEPPER=replace-with-a-random-secret-at-least-32-characters
+ADMIN_BOOTSTRAP_KEY=replace-with-a-different-random-secret-at-least-32-characters
 ```
 
 ### Add Exercises
@@ -221,7 +221,7 @@ colors: {
 ```bash
 git push origin main
 # Connect GitHub to Vercel
-# Add DATABASE_URL and NEXT_PUBLIC_PASSCODE
+# Add DATABASE_URL, PIN_PEPPER, and ADMIN_BOOTSTRAP_KEY
 # Click Deploy
 ```
 

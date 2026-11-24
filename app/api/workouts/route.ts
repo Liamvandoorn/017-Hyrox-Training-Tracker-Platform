@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { addWorkout, deleteWorkout, getWorkouts, updateWorkout } from "@/lib/db";
+import { getCurrentUser } from "@/lib/session";
 import { requiresWeight, requiresWeightAndDistance } from "@/lib/types";
 import type { WorkoutSet, WorkoutSetUnit, WorkoutSource } from "@/lib/types";
 
@@ -113,8 +114,13 @@ function addLegacyRestTimeDefault(workout: unknown): unknown {
 }
 
 export async function GET() {
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Sign in required" }, { status: 401 });
+  }
+
   try {
-    const workouts = await getWorkouts();
+    const workouts = await getWorkouts(user.id);
     return NextResponse.json(workouts.map(addLegacyRestTimeDefault));
   } catch (error) {
     console.error("GET /api/workouts error:", error);
@@ -126,6 +132,11 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Sign in required" }, { status: 401 });
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -140,6 +151,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const workout = await addWorkout(
+      user.id,
       validation.value.name,
       validation.value.date,
       validation.value.source,
@@ -156,6 +168,11 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Sign in required" }, { status: 401 });
+  }
+
   const id = getWorkoutId(request);
   if (id === null) {
     return NextResponse.json({ error: "A valid workout ID is required" }, { status: 400 });
@@ -175,6 +192,7 @@ export async function PUT(request: NextRequest) {
 
   try {
     const workout = await updateWorkout(
+      user.id,
       id,
       validation.value.name,
       validation.value.date,
@@ -195,13 +213,18 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Sign in required" }, { status: 401 });
+  }
+
   const id = getWorkoutId(request);
   if (id === null) {
     return NextResponse.json({ error: "A valid workout ID is required" }, { status: 400 });
   }
 
   try {
-    const deletedCount = await deleteWorkout(id);
+    const deletedCount = await deleteWorkout(user.id, id);
     if (deletedCount === 0) {
       return NextResponse.json({ error: "Workout not found" }, { status: 404 });
     }

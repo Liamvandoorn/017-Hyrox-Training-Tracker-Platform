@@ -126,14 +126,11 @@ This is your complete guide to understanding, setting up, and deploying the Hyro
 
 → Full guide: [QUICKSTART.md](./QUICKSTART.md)
 
-### "How do I change the passcode?"
-Edit `.env.local`:
-```env
-NEXT_PUBLIC_PASSCODE=your-new-passcode
-```
-Restart the dev server.
+### "How do I add a user?"
+Sign in as an administrator and create the member account in Settings. Each
+member signs in using their unique 4-digit PIN.
 
-→ More details: [DEVELOPMENT.md#changing-the-passcode](./DEVELOPMENT.md#changing-the-passcode)
+→ More details: [QUICKSTART.md](./QUICKSTART.md)
 
 ### "How do I add custom exercises?"
 Edit `components/AddSessionForm.tsx` line ~80:
@@ -152,13 +149,14 @@ Edit `components/AddSessionForm.tsx` line ~80:
 → Step-by-step: [DEPLOYMENT_CHECKLIST.md#vercel-setup](./DEPLOYMENT_CHECKLIST.md#vercel-setup)
 
 ### "Is it secure?"
-Yes, but follow these production guidelines:
-- Use strong passcode (12+ characters)
+PIN-only sign-in uses weak 4-digit credentials. Use only for low-risk training
+data, and follow these guidelines:
+- Keep PIN_PEPPER and ADMIN_BOOTSTRAP_KEY long, random, and server-side
 - Never commit `.env.local`
 - Enable HTTPS (automatic on Vercel)
 - Regular security updates
 
-→ Security details: [DEVELOPMENT.md#enhancing-security](./DEVELOPMENT.md#enhancing-security)
+→ Security details: [DEVELOPMENT.md#pin-sign-in-protections](./DEVELOPMENT.md#pin-sign-in-protections)
 
 ---
 

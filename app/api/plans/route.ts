@@ -5,6 +5,7 @@ import {
   getWorkoutPlans,
   updateWorkoutPlan,
 } from "@/lib/db";
+import { getCurrentUser } from "@/lib/session";
 import { requiresWeight, requiresWeightAndDistance } from "@/lib/types";
 import type { WorkoutSet, WorkoutSetUnit, WorkoutPlan } from "@/lib/types";
 
@@ -97,8 +98,13 @@ function isWorkoutPlan(value: unknown): value is WorkoutPlan {
 }
 
 export async function GET() {
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Sign in required" }, { status: 401 });
+  }
+
   try {
-    return NextResponse.json(await getWorkoutPlans());
+    return NextResponse.json(await getWorkoutPlans(user.id));
   } catch (error) {
     console.error("GET /api/plans error:", error);
     return NextResponse.json({ error: "Failed to fetch plans" }, { status: 500 });
@@ -106,6 +112,11 @@ export async function GET() {
 }
 
 export async function POST(request: NextRequest) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Sign in required" }, { status: 401 });
+  }
+
   let body: unknown;
   try {
     body = await request.json();
@@ -119,7 +130,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const plan = await addWorkoutPlan(validation.value.name, validation.value.sets);
+    const plan = await addWorkoutPlan(user.id, validation.value.name, validation.value.sets);
     return NextResponse.json(plan, { status: 201 });
   } catch (error) {
     console.error("POST /api/plans error:", error);
@@ -128,6 +139,11 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Sign in required" }, { status: 401 });
+  }
+
   const id = getPlanId(request);
   if (id === null) {
     return NextResponse.json({ error: "A valid plan ID is required" }, { status: 400 });
@@ -145,7 +161,7 @@ export async function PUT(request: NextRequest) {
   }
 
   try {
-    const plan = await updateWorkoutPlan(id, validation.value.name, validation.value.sets);
+    const plan = await updateWorkoutPlan(user.id, id, validation.value.name, validation.value.sets);
     if (!plan) return NextResponse.json({ error: "Plan not found" }, { status: 404 });
     return NextResponse.json(plan);
   } catch (error) {
@@ -155,13 +171,18 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
+  const user = await getCurrentUser();
+  if (!user) {
+    return NextResponse.json({ error: "Sign in required" }, { status: 401 });
+  }
+
   const id = getPlanId(request);
   if (id === null) {
     return NextResponse.json({ error: "A valid plan ID is required" }, { status: 400 });
   }
 
   try {
-    const deletedCount = await deleteWorkoutPlan(id);
+    const deletedCount = await deleteWorkoutPlan(user.id, id);
     if (deletedCount === 0) return NextResponse.json({ error: "Plan not found" }, { status: 404 });
     return NextResponse.json({ success: true });
   } catch (error) {

@@ -43,7 +43,8 @@ DATABASE_URL_UNPOOLED=postgresql://...@ep-dark-star-zaasujd5.c-2.eu-west-2.aws.n
 NEON_BRANCH=production
 NEON_BRANCH_ID=br-cool-sun-zaeyeh9d
 NEON_FUNCTION_HOST_SUFFIX=.compute.c-2.eu-west-2.aws.neon.tech
-NEXT_PUBLIC_PASSCODE=1234
+PIN_PEPPER=replace-with-a-random-secret-at-least-32-characters
+ADMIN_BOOTSTRAP_KEY=replace-with-a-different-random-secret-at-least-32-characters
 ```
 
 ---
@@ -314,8 +315,9 @@ NEON_BRANCH=production
 NEON_BRANCH_ID=br-cool-sun-zaeyeh9d
 NEON_FUNCTION_HOST_SUFFIX=.compute.c-2.eu-west-2.aws.neon.tech
 
-# App Config
-NEXT_PUBLIC_PASSCODE=1234 (change for production!)
+# App authentication secrets (set separately; keep server-side)
+PIN_PEPPER=replace-with-a-random-secret-at-least-32-characters
+ADMIN_BOOTSTRAP_KEY=replace-with-a-different-random-secret-at-least-32-characters
 ```
 
 ---
