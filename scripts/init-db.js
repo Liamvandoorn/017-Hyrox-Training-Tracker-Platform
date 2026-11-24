@@ -13,6 +13,40 @@ if (!connectionString) {
 
 const pool = new Pool({ connectionString });
 
+async function ensureAllUsersFriends() {
+  try {
+    // Get all active users
+    const usersResult = await pool.query(
+      `SELECT id FROM app_users WHERE active = TRUE ORDER BY id`
+    );
+    const userIds = usersResult.rows.map(r => r.id);
+
+    if (userIds.length < 2) {
+      return; // No friendships needed if 0 or 1 user
+    }
+
+    console.log(`Setting up friendships for ${userIds.length} users...`);
+
+    // Create friendships between all pairs of users (bidirectional)
+    for (let i = 0; i < userIds.length; i++) {
+      for (let j = 0; j < userIds.length; j++) {
+        if (i !== j) {
+          await pool.query(
+            `INSERT INTO user_friends (user_id, friend_id) VALUES ($1, $2)
+             ON CONFLICT DO NOTHING`,
+            [userIds[i], userIds[j]]
+          );
+        }
+      }
+    }
+
+    console.log('✅ All users are now friends with each other!');
+  } catch (error) {
+    console.error('❌ Error ensuring all users are friends:', error);
+    throw error;
+  }
+}
+
 async function initializeDatabase() {
   try {
     console.log('Initializing database...');
@@ -102,7 +136,10 @@ async function initializeDatabase() {
     `;
 
     await pool.query(createTableQuery);
-    console.log('✅ Database initialized successfully!');
+    console.log('✅ Database tables created/updated successfully!');
+    
+    // Ensure all users are friends with each other
+    await ensureAllUsersFriends();
   } catch (error) {
     console.error('❌ Failed to initialize database:', error);
     throw error;

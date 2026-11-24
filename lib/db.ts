@@ -147,7 +147,42 @@ export async function createUser(
      RETURNING id, display_name AS "displayName", role, active`,
     [displayName, pinDigest]
   );
-  return result.rows[0];
+  
+  const newUser = result.rows[0];
+  
+  // Auto-befriend all existing users
+  if (newUser) {
+    // Get all existing users except the new one
+    const existingUsersResult = await query(
+      `SELECT id FROM app_users WHERE id != $1 AND active = TRUE`,
+      [newUser.id]
+    );
+    
+    // Create friend relationships with all existing users (bidirectional)
+    if (existingUsersResult.rows.length > 0) {
+      const existingUserIds = existingUsersResult.rows.map((u: { id: number }) => u.id);
+      
+      // Add new user as friend to all existing users
+      for (const existingUserId of existingUserIds) {
+        await query(
+          `INSERT INTO user_friends (user_id, friend_id) VALUES ($1, $2)
+           ON CONFLICT DO NOTHING`,
+          [existingUserId, newUser.id]
+        );
+      }
+      
+      // Add all existing users as friends to new user
+      for (const existingUserId of existingUserIds) {
+        await query(
+          `INSERT INTO user_friends (user_id, friend_id) VALUES ($1, $2)
+           ON CONFLICT DO NOTHING`,
+          [newUser.id, existingUserId]
+        );
+      }
+    }
+  }
+  
+  return newUser;
 }
 
 export async function getUsers() {
@@ -446,6 +481,31 @@ export async function getFriendsWorkouts(
     });
   }
   return Object.values(grouped);
+}
+
+export async function ensureAllUsersFriends(): Promise<void> {
+  try {
+    // Get all active users
+    const usersResult = await query(
+      `SELECT id FROM app_users WHERE active = TRUE ORDER BY id`
+    );
+    const userIds = usersResult.rows.map((r: { id: number }) => r.id);
+
+    // Create friendships between all pairs of users (bidirectional)
+    for (let i = 0; i < userIds.length; i++) {
+      for (let j = 0; j < userIds.length; j++) {
+        if (i !== j) {
+          await query(
+            `INSERT INTO user_friends (user_id, friend_id) VALUES ($1, $2)
+             ON CONFLICT DO NOTHING`,
+            [userIds[i], userIds[j]]
+          );
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error ensuring all users are friends:", error);
+  }
 }
 
 export async function initializeDatabase() {
