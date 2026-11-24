@@ -143,20 +143,44 @@ export default function DayCarousel({ onDaySelect, workoutCounts = {}, friendsWi
                 ) : null}
               </span>
               {friendIds.length > 0 && (
-                <span className="flex gap-0.5 mt-0.5">
-                  {friendIds.slice(0, 3).map((friendId) => (
-                    <FriendAvatar
-                      key={friendId}
-                      userId={friendId}
-                      size={16}
-                    />
-                  ))}
-                  {friendIds.length > 3 && (
-                    <span className="text-[9px] font-semibold text-[#b8b3ba]">
-                      +{friendIds.length - 3}
-                    </span>
+                <div className="flex items-center justify-center mt-0.5">
+                  {/* Rule 1: Only 1 user - show larger avatar */}
+                  {friendIds.length === 1 && (
+                    <div className="flex gap-0.5">
+                      <FriendAvatar userId={friendIds[0]} size={18} />
+                    </div>
                   )}
-                </span>
+                  
+                  {/* Rule 2: 2-3 users - show adjacent avatars */}
+                  {friendIds.length > 1 && friendIds.length < 4 && (
+                    <div className="flex gap-0.5">
+                      {friendIds.map((friendId) => (
+                        <FriendAvatar key={friendId} userId={friendId} size={16} />
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Rule 3: 4+ users - show 3 avatars with overlay on 2nd showing count */}
+                  {friendIds.length >= 4 && (
+                    <div className="relative flex gap-0.5">
+                      {/* First avatar */}
+                      <FriendAvatar userId={friendIds[0]} size={16} />
+                      
+                      {/* Second avatar with overlay */}
+                      <div className="relative">
+                        <FriendAvatar userId={friendIds[1]} size={16} />
+                        <div className="absolute inset-0 rounded-full bg-black/50 flex items-center justify-center">
+                          <span className="text-[8px] font-bold text-white">
+                            +{friendIds.length - 2}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Third avatar */}
+                      <FriendAvatar userId={friendIds[2]} size={16} />
+                    </div>
+                  )}
+                </div>
               )}
             </button>
           );
