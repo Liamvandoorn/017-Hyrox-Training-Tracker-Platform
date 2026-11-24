@@ -354,7 +354,7 @@ export default function Dashboard() {
     return () => {
       cancelled = true;
     };
-  }, [selectedDate, user?.id, friendsWithWorkouts]);
+  }, [selectedDate, user?.id]);
 
   const runningTrend = useMemo(
     () => getWeeklyRunningTrend(workouts ?? []),
